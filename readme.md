@@ -27,7 +27,7 @@
   - [ ] PostgreSQL (<https://github.com/prometheus-community/postgres_exporter>)
   - [ ] Serviços (<https://github.com/open-telemetry/opentelemetry-rust>)
 - [ ] Relatório
-  - [ ] LaTeX :D (dica: usar tectonic) ou **MD + Pandoc**
+  - [X] LaTeX :D (dica: usar tectonic) ~~ou **MD + Pandoc**~~
   - [ ] Introdução
   - [ ] Fundamentação teórica (**boooooooooriiiiiiiiing**)
   - [ ] Descrição do sistema proposto
