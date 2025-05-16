@@ -1,0 +1,62 @@
+name: vh-evil-inc-citus-cluster
+services:
+  master:
+    container_name: "${COMPOSE_PROJECT_NAME:-citus}_master"
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: "8G"
+    build:
+      dockerfile: Dockerfile.citus
+    ports: ["${COORDINATOR_EXTERNAL_PORT:-5432}:5432"]
+    labels: ["com.citusdata.role=Master"]
+    environment: &AUTH
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      PGUSER: "${POSTGRES_USER:-postgres}"
+      PGPASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_HOST_AUTH_METHOD: "${POSTGRES_HOST_AUTH_METHOD:-trust}"
+    volumes:
+      - healthcheck-volume:/healthcheck
+      - ./enable-random-latency.sh:/enable-random-latency.sh:ro
+    cap_add:
+      - NET_ADMIN
+    command:
+      [
+        "/bin/bash",
+        "-c",
+        "/enable-random-latency.sh && docker-entrypoint.sh postgres",
+      ]
+
+  worker:
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: "8G"
+    build:
+      dockerfile: Dockerfile.citus
+    labels: ["com.citusdata.role=Worker"]
+    depends_on: [manager]
+    environment: *AUTH
+    command:
+      ["/bin/bash", "-c", "/enable-random-latency.sh && /wait-for-manager.sh"]
+    volumes:
+      - ./enable-random-latency.sh:/enable-random-latency.sh:ro
+      - healthcheck-volume:/healthcheck
+    cap_add:
+      - NET_ADMIN
+
+  # This container only takes care of adding and removing the workers from the
+  # cluster. It does not run any queries nor is a database server.
+  manager:
+    container_name: "${COMPOSE_PROJECT_NAME:-citus}_manager"
+    image: "citusdata/membership-manager:0.3.0"
+    volumes:
+      - "${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock"
+      - healthcheck-volume:/healthcheck
+    depends_on: [master]
+    environment: *AUTH
+volumes:
+  healthcheck-volume:

@@ -1,0 +1,27 @@
+name: vh-evil-inc-std
+services:
+  postgres:
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: "8G"
+    build:
+      dockerfile: Dockerfile.postgres
+    ports: ["${COORDINATOR_EXTERNAL_PORT:-5432}:5432"]
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      PGUSER: "${POSTGRES_USER:-postgres}"
+      PGPASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_HOST_AUTH_METHOD: "${POSTGRES_HOST_AUTH_METHOD:-trust}"
+    volumes:
+      - ./enable-random-latency.sh:/enable-random-latency.sh:ro
+    cap_add:
+      - NET_ADMIN
+    command:
+      [
+        "/bin/bash",
+        "-c",
+        "/enable-random-latency.sh && docker-entrypoint.sh postgres",
+      ]
