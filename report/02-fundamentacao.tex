@@ -1,1 +1,46 @@
 \section{Fundamentação Teórica}
+\subsection{Banco de Dados Distribuído}
+Um banco de dados distribuído é um banco de dados cujos dados estão armazenados em diferentes locais, 
+mas se intercomunicam de forma a parecerem um único banco de dados para o usuário.
+
+A distribuição dos dados entre várias máquinas possibilita melhorar a escalabilidade,
+a disponibilidade e a tolerância a falhas do sistema. Entretanto, essa distribuição 
+implica em custos adicionais de comunicação e sincronização entre os nós do sistema.
+
+\subsection{Fragmentação e Replicação de Dados}
+Acerca da distribuição dos dados em bancos de dados distribuídos, 
+tanto as tuplas como os atributos que as compõem podem ser fragmentados entre os nós do sistema,
+e cópias desses dados podem ser replicadas em mais de um nó. 
+
+\subsubsection{Fragmentação Horizontal}
+A fragmentação horizontal consiste das distribuição das <tuplas inteiras> de uma tabela entre as diferentes máquinas do sistema.
+Essa fragmentação é feita para que cada fragmento contenha um subconjunto das tuplas da tabela original,
+e cada fragmento contém todas as colunas da tabela original.
+
+\subsubsection{Fragmentação Vertical}
+A fragmentação vertical consiste na distribuição dos atributos de uma tabela entre as diferentes máquinas do sistema, 
+mantendo em comum a chave primária da tabela original.
+Essa fragmentação é feita para que cada fragmento armazene um subconjunto dos atributos para cada tupla da tabela original.
+
+\subsubsection{Fragmentação Mista}
+A fragmentação mista combina as estratégias de fragmentação horizontal e vertical.
+Nesse caso, cada fragmento armazena um subconjuntos dos atributos de uma tabela para algumas das tuplas.
+
+\subsubsection{Replicação}
+No que diz respeito a redundância dos dados entre os nós do sistema,
+a replicação consiste na cópia de um fragmento de dados em mais de um nó. 
+Essa cópia pode ser feita de forma parcial ou completa, e uma maior redundância dos dados 
+implca em maior disponibilidade e tolerância a falhas do sistema, mas aumenta os custos de armazenamento e sincronização.
+
+<Escrever sobre sincronização talvez>
+
+\subsection{Homogeneidade e Heterogeneidade}
+<>
+
+\subsection{Consulta em Banco de Dados Distribuído}
+\subsubsection{Plano de Consulta}
+
+
+\subsection{Transações}
+\subsubsection{Tolerância a Falhas}
+
