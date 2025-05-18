@@ -29,7 +29,7 @@ Nesse caso, cada fragmento armazena um subconjuntos dos atributos de uma tabela 
 No que diz respeito a redundância dos dados entre os nós do sistema,
 a replicação consiste na cópia de um fragmento de dados em mais de um nó. 
 Essa cópia pode ser feita de forma parcial ou completa, e uma maior redundância dos dados 
-implca em maior disponibilidade e tolerância a falhas do sistema, mas aumenta os custos de armazenamento e sincronização.
+implica em maior disponibilidade e tolerância a falhas do sistema, mas aumenta os custos de armazenamento e sincronização.
 
 \subsubsection{Homogeneidade e Heterogeneidade}
 Os bancos de dados distribuídos também podem ser configurados por nós de mesma natureza,
@@ -47,7 +47,6 @@ de intercomunicação entre os nós para garantir a transparência ao usuário.
 A alocação de dados em um banco de dados distribuído é o processo pelo qual é decido onde os dados serão armazenados,
 levando em consideração a configuração dos nós do sistema e as métricas de desempenho desejadas.
 O processo de alocação de dados pode ser feito de forma centralizada ou descentralizada.
-<Adicionar algo aqui mais tarde se pá>
 
 \subsubsection{Consulta em Banco de Dados Distribuído}
 Devido a variedade de configurações e os fragmentos de dados contidos nos nós do sistema,
@@ -76,7 +75,8 @@ Esses mecanismos são essenciais para evitar inconsistências e garantir a confi
 
 \subsection{Citus}
 Para o desenvolvimento do projeto, foi utilizado o Citus, uma extensão do PostgreSQL para bases de dados distribuídas.
-O Citus apresenta suporte a fragmentação horizontal e vertical, replicação de dados. 
+O Citus apresenta suporte a fragmentação horizontal, fragmentação por schemas e
+replicação de dados. 
 O citus suporta exclusivamente o SGBD PostgreSQL.
 
 
@@ -85,7 +85,7 @@ O citus suporta exclusivamente o SGBD PostgreSQL.
 O  Citus atribuí aos seus nós dois papéis distintos, 
 \textit{worker} e \text{coordinator}.
 
-Os \text{worker nodes} são responsãveis por armazenar os dados e processar as consultas,
+Os \text{worker nodes} são responsáveis por armazenar os dados e processar as consultas,
 e compõe a maior parte dos nós do sistema.
 
 Cada cluster de nós trabalhadores é gerenciado por um nó coordenador,

@@ -32,10 +32,10 @@ Para rodar os benchmarks, basta rodar os scirpts `run_tpcc.sh` e `run_tpch.sh`, 
 
 - [ ] Relatório
   - [X] LaTeX
-  - [ ] Introdução
-  - [ ] Fundamentação
-  - [ ] Descrição do sistema proposto
-  - [ ] Implementação
+  - [X] Introdução
+  - [X] Fundamentação
+  - [X] Descrição do sistema proposto
+  - [X] Implementação
   - [ ] Experimentos e resultados
   - [ ] Conclusões e trabalhos futuros
   - [ ] Referências

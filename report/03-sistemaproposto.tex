@@ -1,2 +1,50 @@
 \section{Sistema Proposto}
 
+O sistema proposto foi desenvolvido para comparar o desempenho de uma instância única do PostgreSQL 
+com um ambiente em cluster utilizando o Citus.
+
+Os benchmarks utilizados serão o TPC-C e o TPC-H, desenvolvidos pelo TPC (Transaction Processing Council),
+amplamente reconhecidos como padrões de mercado para avaliar desempenho e escalabilidade de sistemas 
+de banco de dados. A execução dos benchmarks será intermediada pelo framework HammerDB.
+Utilizaremos o grafana e o prometheus para monitorar o sistema durante os testes.
+
+Para garantir fácil reprodutibilidade e configuração, 
+ambos os ambientes serão configurados utilizando o \textbf{Docker Compose}.
+
+\subsection{Ferramentas Utilizadas}
+\begin{itemize}
+    \item \textbf{Docker Compose:} 
+	Ferramenta de orquestração de containers empregada para configurar e iniciar facilmente os ambientes de banco de dados, 
+	tanto para a instância única quanto para o cluster.
+	
+	\item \textbf{PostgreSQL:} 
+	Utilizado como sistema gerenciador de banco de dados relacional base,
+	tanto no modo standalone quanto no cluster.
+    
+    \item \textbf{Citus:} 
+	Extensão do PostgreSQL que permite a distribuição dos dados e consultas entre múltiplos nós,
+	viabilizando o escalonamento horizontal do banco de dados.
+    
+    \item \textbf{Grafana e Prometheus:} 
+	Utilizados para monitoramento e análise de métricas do sistema. 
+	O Prometheus coleta e armazena as métricas do PostgreSQL, enquanto o Grafana fornece dashboards interativos,
+	para visualização em tempo real do comportamento do sistema.
+    
+    \item \textbf{HammerDB:}
+	Framework de benchmarking utilizado para executar testes de carga nos bancos de dados.
+	Foram empregados os benchmarks TPC-C (transacional) e TPC-H (analítico), 
+	reconhecidos como padrões de mercado para avaliação de desempenho e escalabilidade de sistemas de banco de dados.
+\end{itemize}
+
+\section{Implementação}
+
+O sistema foi implementado utilizando o Docker Compose, com as ferramentas explicadas na sessão anterior,
+e está disponível no repositório do projeto.
+
+Além disso, para simular um ambiente de cloud, cada instância foi limitada a 8GB de RAM e 2 CPUs,
+além da introdução de latência de rede aleatória (150us $\pm$ 200us). 
+
+Os scripts de inicialização dos ambientes e execução dos benchmarks foram automatizados,
+facilitando a replicação dos experimentos e a coleta dos resultados.
+
+Os comandos para reproduzir o sistema e executar o benchmark estão disponíveis no readme do repositório.
