@@ -54,13 +54,25 @@ Devido a variedade de configurações e os fragmentos de dados contidos nos nós
 o processo de consulta adquire uma complexidade maior em um banco de dados distribuído.
 
 \subsubsection{Plano de Consulta}
-<SLA>
+O plano de consulta em bancos de dados distribuídos é a sequência de operações que define como uma consulta será executada 
+sobre os dados fragmentados e possivelmente replicados entre diferentes nós.
+O otimizador do SGBD distribui as operações entre os nós, buscando minimizar o custo de comunicação e o tempo de resposta. 
+O plano pode envolver o envio de subconsultas para diferentes nós, a coleta e combinação dos resultados parciais, e a aplicação de operações finais no nó coordenador.
+A eficiência do plano de consulta é fundamental para o desempenho do sistema distribuído.
 
 \subsubsection{Transações}
-<SLA>
+Transações em bases de dados distribuídas envolvem múltiplos nós ou locais onde os dados estão armazenados,
+mas precisam ser executadas de forma coordenada para garantir as propriedades de Atomicidade, Consistência, Isolamento e Durabilidade(ACID).
+Mesmo que uma transação envolva atualizações em diferentes servidores, 
+ela deve ser concluída integralmente em todos eles ou ser completamente desfeita em caso de falha,
+mantendo o sistema em um estado consistente.
 
-\subsubsection{Tolerância a Falhas}
-<SLA>
+Para garantir essas propriedades,
+sistemas distribuídos utilizam protocolos especiais,
+como o protocolo de commit em duas fases(Two-Phase Commit–2PC),
+que coordenam a aprovação e execução das operações entre todos os nós participantes. 
+Esses mecanismos são essenciais para evitar inconsistências e garantir a confiabilidade das transações.
+
 
 \subsection{Citus}
 Para o desenvolvimento do projeto, foi utilizado o Citus, uma extensão do PostgreSQL para bases de dados distribuídas.
@@ -84,26 +96,21 @@ e da integridade dos nós trabalhadores.
 
 \subsubsection{Tipos de Tabelas}
 O Citus oferece os seguintes tipos de tabelas:
+
 \begin{itemize}
-	\item \textbf{Distributed Tables}: 
-	São tabelas distribuídas horizontalmente entre os nós trabalhadores. 
-	O Citus utiliza um algoritmo determinístico baseado em uma coluna de distribuição para alocar as tuplas nos fragmentos.
-	Alterações no esquema de uma tabela distribuída são propagadas para todos os fragmentos associados.
-
-	\item \textbf{Reference Tables}: 
-	Tabelas replicadas integralmente em todos os nós trabalhadores. 
-	Elas são úteis para armazenar dados pequenos e frequentemente acessados pela maioria dos nós.
-
-	\item \textbf{Local Tables}: 
-	São tabelas armazenadas apenas em um nó coordenador, são tabelas PostgreSQL padrão e não são fragmentadas.
-	
-	\item \textbf{Local Managed Tables}: 
-	<reler>
-
-	\item \textbf{Schema Tables}: 
-	<aff>
-
+    \item \textbf{Tabelas distribuídas (distributed tables):} 
+    São tabelas cujos dados são particionados (sharded) e distribuídos entre vários nós trabalhadores. Cada linha é atribuída a um shard com base em uma coluna de distribuição escolhida, permitindo consultas e operações paralelas.
+    
+    \item \textbf{Tabelas de referência (reference tables):} 
+    São tabelas replicadas em todos os nós trabalhadores, 
+	utilizada para armazenar dados pequenos e frequentemente acessados. 
+    
+    \item \textbf{Tabelas locais (local tables):} 
+    São tabelas que existem apenas no nó coordenador e não são distribuídas nem replicadas. 
+	Funcionam como tabelas normais do PostgreSQL, e são úteis para dados administrativos ou de controle.
 \end{itemize}
 
-\subsubsection{Execução de Consultas}
-<TODO>
+\subsubsection{Transações}
+O Citus implementa o protocolo de commit em duas fases(2PC) para garantir as propriedades ACID
+e implementa mecanismos adicionais para lidar com falhas, como uso de metadados distribuídos para 
+recuperação de transações incompletas.
