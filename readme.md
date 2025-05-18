@@ -2,6 +2,10 @@
 
 ![Imagem séria :)](./vhevilinc.jpg)
 
+## Ambiente
+
+TODO: explicar como subir os ambientes. :)
+
 ## Fazueli
 
 - [ ] Setar os ambientes locais (docker-compose)
@@ -21,6 +25,7 @@
   - [ ] CRUD :)
   - [ ] Algumas queries mais complexas de agregação
 - [ ] Desenvolver benchmarks
+  - Usar TPC-H???
 - [ ] Instrumentação (telemetria)
   - [ ] Prometheus
   - [ ] Grafana
@@ -36,5 +41,3 @@
   - [ ] Conclusões e trabalhos futuros
   - [ ] Referências
   - [ ] Apendicite
-
-

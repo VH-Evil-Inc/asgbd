@@ -1,6 +1,6 @@
 name: vh-evil-inc-citus-std
 services:
-  citus:
+  master:
     deploy:
       resources:
         limits:
@@ -16,7 +16,6 @@ services:
       PGPASSWORD: "${POSTGRES_PASSWORD}"
       POSTGRES_HOST_AUTH_METHOD: "${POSTGRES_HOST_AUTH_METHOD:-trust}"
     volumes:
-      - healthcheck-volume:/healthcheck
       - ./enable-random-latency.sh:/enable-random-latency.sh:ro
     cap_add:
       - NET_ADMIN
@@ -26,3 +25,51 @@ services:
         "-c",
         "/enable-random-latency.sh && docker-entrypoint.sh postgres",
       ]
+
+  ##############
+  # Monitoring #
+  ##############
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+
+  postgres_exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:latest
+    container_name: postgres_exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@master:5432/postgres?sslmode=disable"
+    depends_on:
+      - master
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./config/dashboards:/etc/grafana/provisioning/dashboards
+      - ./config/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - ./config/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+    depends_on:
+      - prometheus
+
+volumes:
+  pgdata:
+  grafana-storage:
+
+networks:
+  default:
+    name: vh-evil-inc
