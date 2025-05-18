@@ -31,6 +31,7 @@ services:
 
   worker:
     deploy:
+      replicas: 3
       resources:
         limits:
           cpus: "4"
