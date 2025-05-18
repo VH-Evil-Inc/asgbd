@@ -16,10 +16,10 @@ diset tpcc pg_cituscompat true
 
 # Set TPC-C specific parameters
 diset tpcc pg_count_ware 100       ;# Number of warehouses
-diset tpcc pg_num_vu 16            ;# Virtual users
+diset tpcc pg_num_vu 100            ;# Virtual users
 diset tpcc pg_driver timed        ;# Timed driver
 diset tpcc pg_rampup 2           ;# 2-minute rampup
-diset tpcc pg_duration 10         ;# 10-minute test
+diset tpcc pg_duration 5         ;# 5-minute test
 diset tpcc pg_allwarehouse true
 diset tpcc pg_timeprofile false  ;# Disable to prevent memory issues
 diset tpcc pg_vacuum false       ;# Disable during test for stability
@@ -33,10 +33,15 @@ loadscript
 vudestroy
 
 # Configure virtual users
-vuset vu 16
+vuset vu 100
 vuset logtotemp 1                   ;# Enable temp logging
 vuset unique 1                      ;# Unique VU IDs
 vuset showoutput 1                  ;# Show console output
+
+tcset total 10000
+tcstart
+tcstatus
+jobs cloud 1
 
 # Run benchmark
 puts "Starting test..."
@@ -44,3 +49,7 @@ vucreate
 vurun
 keepalive                          ;# Wait for completion
 puts "Test complete."
+
+vudestroy
+tcstop
+job 1 getchart result

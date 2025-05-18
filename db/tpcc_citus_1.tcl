@@ -16,10 +16,10 @@ diset tpcc pg_cituscompat true
 
 # Set TPC-C specific parameters
 diset tpcc pg_count_ware 100       ;# Number of warehouses
-diset tpcc pg_num_vu 16            ;# Virtual users
+diset tpcc pg_num_vu 100            ;# Virtual users
 diset tpcc pg_driver timed        ;# Timed driver
 diset tpcc pg_rampup 2           ;# 2-minute rampup
-diset tpcc pg_duration 10         ;# 10-minute test
+diset tpcc pg_duration 5         ;# 5-minute test
 diset tpcc pg_allwarehouse true
 diset tpcc pg_timeprofile false  ;# Disable to prevent memory issues
 diset tpcc pg_vacuum false       ;# Disable during test for stability
@@ -27,6 +27,9 @@ diset tpcc pg_vacuum false       ;# Disable during test for stability
 # Configure jobs database for result storage
 giset commandline keepalive_margin 300  ;# Extend completion wait to 5 mins
 jobs format text                        ;# Human-readable output
+
+# Load the TPC-C benchmark script
+loadscript
 
 # Build the TPC-C schema and load data
 puts "Starting schema build..."
