@@ -16,16 +16,17 @@ diset tpch pg_tpch_tspace pg_default
 diset tpch pg_cituscompat true
 
 # Set TPC-H specific parameters
-diset tpch pg_scale_fact 100    ;# Scale factor (e.g., 100GB)
-diset tpch pg_num_tpch_threads 16 ;# Parallel data generation
-diset tpch pg_degree_of_parallel 8 ;# Query parallelism
-diset tpch pg_refresh_on false     ;# Disable refresh
-diset tpch pg_driver timed        ;# Timed driver
-diset tpch pg_rampup 2           ;# 2-min rampup
-diset tpch pg_duration 10         ;# 10-min test
-diset tpch pg_storage_raid false  ;# Disable RAID simulation
-diset tpch pg_maxdop 16           ;# Increase parallel degree
-diset tpch pg_analyze true        ;# Force stats collection
+diset tpch pg_scale_fact 30         ;# Scale factor (e.g., 30GB)
+diset tpch pg_num_tpch_threads 16   ;# Parallel data generation
+diset tpch pg_degree_of_parallel 32 ;# Query parallelism
+diset tpch pg_refresh_on false      ;# Disable refresh
+diset tpch pg_driver timed          ;# Timed driver
+diset tpch pg_rampup 2              ;# 2-min rampup
+diset tpch pg_duration 5           ;# 5-min test
+diset tpch pg_storage_raid false    ;# Disable RAID simulation
+diset tpch pg_maxdop 16             ;# Increase parallel degree
+diset tpch pg_analyze true          ;# Force stats collection
+diset tpch pg_timeprofile true      ;# Enabled to collect latency data
 
 # Load the TPC-H benchmark script
 print dict

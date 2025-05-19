@@ -1,6 +1,7 @@
 name: vh-evil-inc-citus-std
 services:
   master:
+    shm_size: 1gb
     deploy:
       resources:
         limits:

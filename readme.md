@@ -30,18 +30,57 @@ Para rodar os benchmarks, basta rodar os scirpts `run_tpcc.sh` e `run_tpch.sh`, 
 
 ## Resultados
 
-Cluster TPC-C: `System achieved 10221 NOPM from 23917 PostgreSQL TPM`
-Standalone TPC-C: `System achieved 21109 NOPM from 48658 PostgreSQL TPM`
+Todos os testes do TPC-C foram executados com 40 warehouses e 64 virtual users.
 
-## Fazueli
+### Standalone TPC-C
 
-- [ ] Relatório
-  - [X] LaTeX
-  - [X] Introdução
-  - [X] Fundamentação
-  - [X] Descrição do sistema proposto
-  - [X] Implementação
-  - [ ] Experimentos e resultados
-  - [ ] Conclusões e trabalhos futuros
-  - [ ] Referências
-  - [ ] Apendicite
+`System achieved 31405 NOPM from 72424 PostgreSQL TPM`
+
+```
+>>>>> COMBINED METRICS ACROSS ALL USERS
+>>>>> PROC: PAYMENT
+CALLS: 648402     MIN: 0.833ms    AVG: 52.601ms  MAX: 1257.365ms TOTAL: 34106475.135ms
+P99: 413.035ms  P95: 167.278ms  P50: 27.633ms   SD: 76878.831  RATIO: 71.729%
+
+>>>>> PROC: NEWORD
+CALLS: 648063     MIN: 1.640ms    AVG: 48.569ms  MAX: 1255.893ms TOTAL: 31475935.439ms
+P99: 413.374ms  P95: 160.868ms  P50: 23.915ms   SD: 78820.126  RATIO: 66.301%
+
+>>>>> PROC: SLEV
+CALLS: 65004     MIN: 0.440ms    AVG: 153.889ms  MAX: 21302.445ms TOTAL: 10003419.917ms
+P99: 4235.829ms  P95: 73.669ms  P50: 6.215ms   SD: 1402535.846  RATIO: 21.014%
+
+>>>>> PROC: DELIVERY
+CALLS: 64713     MIN: 1.278ms    AVG: 54.623ms  MAX: 1417.772ms TOTAL: 3534810.624ms
+P99: 441.496ms  P95: 191.119ms  P50: 25.470ms   SD: 85934.701  RATIO: 7.448%
+
+>>>>> PROC: OSTAT
+CALLS: 63558     MIN: 0.104ms    AVG: 2.725ms  MAX: 455.587ms TOTAL: 173186.360ms
+P99: 47.199ms  P95: 3.844ms  P50: 1.292ms   SD: 9232.670  RATIO: 0.365%
+```
+
+### Cluster TPC-C
+
+`System achieved 15304 NOPM from 35762 PostgreSQL TPM`
+
+```
+>>>>> PROC: PAYMENT
+CALLS: 357969     MIN: 0.990ms    AVG: 101.086ms  MAX: 1767.711ms TOTAL: 36185664.966ms
+P99: 611.674ms  P95: 352.694ms  P50: 72.123ms   SD: 124203.689  RATIO: 73.732%
+
+>>>>> PROC: NEWORD
+CALLS: 358992     MIN: 1.774ms    AVG: 107.871ms  MAX: 1737.546ms TOTAL: 38724729.750ms
+P99: 607.420ms  P95: 362.191ms  P50: 83.081ms   SD: 123040.591  RATIO: 79.003%
+
+>>>>> PROC: DELIVERY
+CALLS: 35715     MIN: 2.286ms    AVG: 115.989ms  MAX: 1505.085ms TOTAL: 4142561.285ms
+P99: 596.206ms  P95: 375.478ms  P50: 90.453ms   SD: 125203.863  RATIO: 8.462%
+
+>>>>> PROC: SLEV
+CALLS: 36069     MIN: 0.612ms    AVG: 63.438ms  MAX: 5600.833ms TOTAL: 2288143.726ms
+P99: 730.162ms  P95: 224.685ms  P50: 8.710ms   SD: 221772.540  RATIO: 4.667%
+
+>>>>> PROC: OSTAT
+CALLS: 35067     MIN: 0.269ms    AVG: 7.474ms  MAX: 609.841ms TOTAL: 262082.364ms
+P99: 80.547ms  P95: 60.180ms  P50: 2.439ms   SD: 18430.345  RATIO: 0.536%
+```

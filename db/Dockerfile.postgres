@@ -7,5 +7,6 @@ RUN apt-get update\
     && rm -rf /var/lib/apt/lists/*
 
 COPY pg_healthcheck /
+COPY 002-increase-max-conn.sql /docker-entrypoint-initdb.d/
 
 HEALTHCHECK --interval=4s --start-period=6s CMD ./pg_healthcheck

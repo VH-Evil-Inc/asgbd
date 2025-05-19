@@ -1,6 +1,7 @@
 name: vh-evil-inc-citus-cluster
 services:
   master:
+    shm_size: 1gb
     container_name: "${COMPOSE_PROJECT_NAME:-citus}_master"
     deploy:
       resources:
@@ -30,6 +31,7 @@ services:
       ]
 
   worker:
+    shm_size: 1gb
     deploy:
       replicas: 3
       resources:
