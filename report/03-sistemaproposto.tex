@@ -3,9 +3,9 @@
 O sistema proposto foi desenvolvido para comparar o desempenho de uma instância única do PostgreSQL 
 com um ambiente em cluster utilizando o Citus.
 
-Os benchmarks utilizados serão o TPC-C, desenvolvidos pelo TPC (Transaction Processing Council),
-amplamente reconhecidos como padrões de mercado para avaliar desempenho e escalabilidade de sistemas 
-de banco de dados. A execução dos benchmarks será intermediada pelo framework HammerDB.
+O benchmark utilizado será o TPC-C, desenvolvidos pelo TPC (Transaction Processing Council),
+amplamente reconhecido como um padrão do mercado para avaliar desempenho e escalabilidade de sistemas 
+de banco de dados. A execução do benchmark será intermediada pelo framework HammerDB.
 Utilizaremos o grafana e o prometheus para monitorar o sistema durante os testes.
 
 Para garantir fácil reprodutibilidade e configuração, 
@@ -32,8 +32,8 @@ ambos os ambientes serão configurados utilizando o \textbf{Docker Compose}.
     
     \item \textbf{HammerDB:}
 	Framework de benchmarking utilizado para executar testes de carga nos bancos de dados.
-	Foram empregados os benchmarks TPC-C, 
-	reconhecidos como padrões de mercado para avaliação de desempenho e escalabilidade de sistemas de banco de dados.
+	Foi empregado o benchmark TPC-C, 
+	reconhecido como padrão do mercado para avaliação de desempenho e escalabilidade de sistemas de banco de dados.
 
 	\item \textbf{TPC-C:}
 	O TPC-C é um benchmark amplamente utilizado para medir o desempenho de sistemas de banco de dados em ambientes 

@@ -1,98 +1,53 @@
 \section{Fundamentação Teórica}
 \subsection{Banco de Dados Distribuído}
-Um banco de dados distribuído é um banco de dados cujos dados estão armazenados em diferentes locais, 
-mas se intercomunicam de forma a parecerem um único banco de dados para o usuário.
+Um banco de dados distribuído é um banco de dados cujos dados estão armazenados em diferentes locais, mas que se intercomunicam de forma a parecerem um único banco de dados para o usuário.
 
-A distribuição dos dados entre várias máquinas possibilita melhorar a escalabilidade,
-a disponibilidade e a tolerância a falhas do sistema. Entretanto, essa distribuição 
-implica em custos adicionais de comunicação e sincronização entre os nós do sistema.
+A distribuição dos dados entre várias máquinas possibilita melhorar a escalabilidade, a disponibilidade e a tolerância a falhas do sistema. Entretanto, essa distribuição implica em custos adicionais de comunicação e sincronização entre os nós do sistema.
 
-Acerca da distribuição dos dados em bancos de dados distribuídos, 
-tanto as tuplas como os atributos que as compõem podem ser fragmentados entre os nós do sistema,
-e cópias desses dados podem ser replicadas em mais de um nó. 
+No contexto da distribuição dos dados em bancos de dados distribuídos, tanto as tuplas quanto os atributos que as compõem podem ser fragmentados entre os nós do sistema, e cópias desses dados podem ser replicadas em mais de um nó.
 
 \subsubsection{Fragmentação Horizontal}
-A fragmentação horizontal consiste das distribuição das <tuplas inteiras> de uma tabela entre as diferentes máquinas do sistema.
-Essa fragmentação é feita para que cada fragmento contenha um subconjunto das tuplas da tabela original,
-e cada fragmento contém todas as colunas da tabela original.
+A fragmentação horizontal consiste na distribuição das tuplas inteiras de uma tabela entre diferentes máquinas do sistema. Essa fragmentação é realizada de modo que cada fragmento contenha um subconjunto das tuplas da tabela original, mantendo todas as colunas.
 
 \subsubsection{Fragmentação Vertical}
-A fragmentação vertical consiste na distribuição dos atributos de uma tabela entre as diferentes máquinas do sistema, 
-mantendo em comum a chave primária da tabela original.
-Essa fragmentação é feita para que cada fragmento armazene um subconjunto dos atributos para cada tupla da tabela original.
+A fragmentação vertical consiste na distribuição dos atributos de uma tabela entre diferentes máquinas do sistema, mantendo em comum a chave primária da tabela original. Dessa forma, cada fragmento armazena um subconjunto dos atributos para cada tupla da tabela original.
 
 \subsubsection{Fragmentação Mista}
-A fragmentação mista combina as estratégias de fragmentação horizontal e vertical.
-Nesse caso, cada fragmento armazena um subconjuntos dos atributos de uma tabela para algumas das tuplas.
+A fragmentação mista combina as estratégias de fragmentação horizontal e vertical. Nesse caso, cada fragmento armazena um subconjunto dos atributos de uma tabela para um subconjunto das tuplas.
 
 \subsubsection{Replicação}
-No que diz respeito a redundância dos dados entre os nós do sistema,
-a replicação consiste na cópia de um fragmento de dados em mais de um nó. 
-Essa cópia pode ser feita de forma parcial ou completa, e uma maior redundância dos dados 
-implica em maior disponibilidade e tolerância a falhas do sistema, mas aumenta os custos de armazenamento e sincronização.
+No que diz respeito à redundância dos dados entre os nós do sistema, a replicação consiste na cópia de um fragmento de dados em mais de um nó. Essa cópia pode ser feita de forma parcial ou completa, e uma maior redundância dos dados implica em maior disponibilidade e tolerância a falhas do sistema, mas aumenta os custos de armazenamento e sincronização.
 
 \subsubsection{Homogeneidade e Heterogeneidade}
-Os bancos de dados distribuídos também podem ser configurados por nós de mesma natureza,
-no que se diz respeito ao SGBD utilizado, modelos de dados, protocolos de comunicação,
-fragmentação e replicação dos dados. 
+Os bancos de dados distribuídos também podem ser compostos por nós de mesma natureza, no que diz respeito ao SGBD utilizado, modelos de dados, protocolos de comunicação, fragmentação e replicação dos dados.
 
-Um sistema cujos nós seguem uma mesma arquitetura geral é classificado como homogêneo, 
-e desfruta de um maior desempenho geral e simplicidade de implementação e escalabilidade.
+Um sistema cujos nós seguem a mesma arquitetura geral é classificado como homogêneo, e apresenta maior desempenho geral, simplicidade de implementação e escalabilidade.
 
-Diferentemente, um sistema heterogêneo é composto por nós de diferentes arquiteturas,
-o que aumenta a complexidade de implementação, manutenção e requer um esforço maior
-de intercomunicação entre os nós para garantir a transparência ao usuário. 
+Por outro lado, um sistema heterogêneo é composto por nós de diferentes arquiteturas, o que aumenta a complexidade de implementação e manutenção, além de exigir um esforço maior de intercomunicação entre os nós para garantir a transparência ao usuário.
 
 \subsubsection{Alocação de Dados}
-A alocação de dados em um banco de dados distribuído é o processo pelo qual é decido onde os dados serão armazenados,
-levando em consideração a configuração dos nós do sistema e as métricas de desempenho desejadas.
-O processo de alocação de dados pode ser feito de forma centralizada ou descentralizada.
+A alocação de dados em um banco de dados distribuído é o processo pelo qual se decide onde os dados serão armazenados, levando em consideração a configuração dos nós do sistema e as métricas de desempenho desejadas. O processo de alocação de dados pode ser feito de forma centralizada ou descentralizada.
 
 \subsubsection{Consulta em Banco de Dados Distribuído}
-Devido a variedade de configurações e os fragmentos de dados contidos nos nós do sistema,
-o processo de consulta adquire uma complexidade maior em um banco de dados distribuído.
+Devido à variedade de configurações e aos fragmentos de dados contidos nos nós do sistema, o processo de consulta se torna mais complexo em um banco de dados distribuído.
 
 \subsubsection{Plano de Consulta}
-O plano de consulta em bancos de dados distribuídos é a sequência de operações que define como uma consulta será executada 
-sobre os dados fragmentados e possivelmente replicados entre diferentes nós.
-O otimizador do SGBD distribui as operações entre os nós, buscando minimizar o custo de comunicação e o tempo de resposta. 
-O plano pode envolver o envio de subconsultas para diferentes nós, a coleta e combinação dos resultados parciais, e a aplicação de operações finais no nó coordenador.
-A eficiência do plano de consulta é fundamental para o desempenho do sistema distribuído.
+O plano de consulta em bancos de dados distribuídos é a sequência de operações que define como uma consulta será executada sobre os dados fragmentados e possivelmente replicados entre diferentes nós. O otimizador do SGBD distribui as operações entre os nós, buscando minimizar o custo de comunicação e o tempo de resposta. O plano pode envolver o envio de subconsultas para diferentes nós, a coleta e combinação dos resultados parciais, e a aplicação de operações finais no nó coordenador. A eficiência do plano de consulta é fundamental para o desempenho do sistema distribuído.
 
 \subsubsection{Transações}
-Transações em bases de dados distribuídas envolvem múltiplos nós ou locais onde os dados estão armazenados,
-mas precisam ser executadas de forma coordenada para garantir as propriedades de Atomicidade, Consistência, Isolamento e Durabilidade(ACID).
-Mesmo que uma transação envolva atualizações em diferentes servidores, 
-ela deve ser concluída integralmente em todos eles ou ser completamente desfeita em caso de falha,
-mantendo o sistema em um estado consistente.
+Transações em bases de dados distribuídas envolvem múltiplos nós ou locais onde os dados estão armazenados, mas precisam ser executadas de forma coordenada para garantir as propriedades de Atomicidade, Consistência, Isolamento e Durabilidade (ACID). Mesmo que uma transação envolva atualizações em diferentes servidores, ela deve ser concluída integralmente em todos eles ou ser completamente desfeita em caso de falha, mantendo o sistema em um estado consistente.
 
-Para garantir essas propriedades,
-sistemas distribuídos utilizam protocolos especiais,
-como o protocolo de commit em duas fases(Two-Phase Commit–2PC),
-que coordenam a aprovação e execução das operações entre todos os nós participantes. 
-Esses mecanismos são essenciais para evitar inconsistências e garantir a confiabilidade das transações.
-
+Para garantir essas propriedades, sistemas distribuídos utilizam protocolos especiais, como o protocolo de commit em duas fases (Two-Phase Commit – 2PC), que coordenam a aprovação e execução das operações entre todos os nós participantes. Esses mecanismos são essenciais para evitar inconsistências e garantir a confiabilidade das transações.
 
 \subsection{Citus}
-Para o desenvolvimento do projeto, foi utilizado o Citus, uma extensão do PostgreSQL para bases de dados distribuídas.
-O Citus apresenta suporte a fragmentação horizontal, fragmentação por schemas e
-replicação de dados. 
-O citus suporta exclusivamente o SGBD PostgreSQL.
+Para o desenvolvimento do projeto, foi utilizado o Citus, uma extensão do PostgreSQL para bancos de dados distribuídos. O Citus apresenta suporte à fragmentação horizontal, fragmentação por esquema e replicação de dados. O Citus suporta exclusivamente o SGBD PostgreSQL.
 
+\subsubsection{Nós Coordenadores e Nós Trabalhadores}
+O Citus atribui aos seus nós dois papéis distintos: \textit{worker} e \textit{coordinator}.
 
-\subsubsection{Nós coordenadores e nós trabalhadores}
+Os \textit{worker nodes} são responsáveis por armazenar os dados e processar as consultas, compondo a maior parte dos nós do sistema.
 
-O  Citus atribuí aos seus nós dois papéis distintos, 
-\textit{worker} e \text{coordinator}.
-
-Os \text{worker nodes} são responsáveis por armazenar os dados e processar as consultas,
-e compõe a maior parte dos nós do sistema.
-
-Cada cluster de nós trabalhadores é gerenciado por um nó coordenador,
-o papel do nó coordenador é intermediar as consultas da aplicação entre um ou múltiplos
-nós que contém os dados desejados, acumular os resultados e retornar o resultado final para a aplicação.  
-O nó coordenador também mantem a alocação, o controle da consistência dos dados 
-e da integridade dos nós trabalhadores.
+Cada cluster de nós trabalhadores é gerenciado por um nó coordenador, cujo papel é intermediar as consultas da aplicação entre um ou múltiplos nós que contêm os dados desejados, acumular os resultados e retornar o resultado final para a aplicação. O nó coordenador também mantém a alocação, o controle da consistência dos dados e da integridade dos nós trabalhadores.
 
 \subsubsection{Tipos de Tabelas}
 O Citus oferece os seguintes tipos de tabelas:
@@ -102,15 +57,11 @@ O Citus oferece os seguintes tipos de tabelas:
     São tabelas cujos dados são particionados (sharded) e distribuídos entre vários nós trabalhadores. Cada linha é atribuída a um shard com base em uma coluna de distribuição escolhida, permitindo consultas e operações paralelas.
     
     \item \textbf{Tabelas de referência (reference tables):} 
-    São tabelas replicadas em todos os nós trabalhadores, 
-	utilizada para armazenar dados pequenos e frequentemente acessados. 
+    São tabelas replicadas em todos os nós trabalhadores, utilizadas para armazenar dados pequenos e frequentemente acessados.
     
     \item \textbf{Tabelas locais (local tables):} 
-    São tabelas que existem apenas no nó coordenador e não são distribuídas nem replicadas. 
-	Funcionam como tabelas normais do PostgreSQL, e são úteis para dados administrativos ou de controle.
+    São tabelas que existem apenas no nó coordenador e não são distribuídas nem replicadas. Funcionam como tabelas normais do PostgreSQL e são úteis para dados administrativos ou de controle.
 \end{itemize}
 
 \subsubsection{Transações}
-O Citus implementa o protocolo de commit em duas fases(2PC) para garantir as propriedades ACID
-e implementa mecanismos adicionais para lidar com falhas, como uso de metadados distribuídos para 
-recuperação de transações incompletas.
+O Citus implementa o protocolo de commit em duas fases (2PC) para garantir as propriedades ACID e utiliza mecanismos adicionais para lidar com falhas, como o uso de metadados distribuídos para recuperação de transações incompletas.
