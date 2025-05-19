@@ -3,7 +3,7 @@
 O sistema proposto foi desenvolvido para comparar o desempenho de uma instância única do PostgreSQL 
 com um ambiente em cluster utilizando o Citus.
 
-Os benchmarks utilizados serão o TPC-C e o TPC-H, desenvolvidos pelo TPC (Transaction Processing Council),
+Os benchmarks utilizados serão o TPC-C, desenvolvidos pelo TPC (Transaction Processing Council),
 amplamente reconhecidos como padrões de mercado para avaliar desempenho e escalabilidade de sistemas 
 de banco de dados. A execução dos benchmarks será intermediada pelo framework HammerDB.
 Utilizaremos o grafana e o prometheus para monitorar o sistema durante os testes.
@@ -32,17 +32,31 @@ ambos os ambientes serão configurados utilizando o \textbf{Docker Compose}.
     
     \item \textbf{HammerDB:}
 	Framework de benchmarking utilizado para executar testes de carga nos bancos de dados.
-	Foram empregados os benchmarks TPC-C (transacional) e TPC-H (analítico), 
+	Foram empregados os benchmarks TPC-C, 
 	reconhecidos como padrões de mercado para avaliação de desempenho e escalabilidade de sistemas de banco de dados.
+
+	\item \textbf{TPC-C:}
+	O TPC-C é um benchmark amplamente utilizado para medir o desempenho de sistemas de banco de dados em ambientes 
+	de processamento de transações online (OLTP). Ele simula o funcionamento de uma empresa atacadista,
+	incluindo operações como criação de pedidos, pagamentos, entregas e controle de estoque,
+	por meio de cinco tipos de transações típicas do dia a dia empresarial.
+	O teste avalia a capacidade do sistema de processar grandes volumes de transações simultâneas,
+	refletindo cenários reais de negócios, e utiliza como principal métrica o número de transações por minuto (tpmC),
+	permitindo comparar a performance e escalabilidade de diferentes soluções de banco de dados.
+	
+	O esquema relacional do TPC-C é o seguinte:
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=0.8\textwidth]{imgs/ch3-2.png}
+		\caption{obtido em: https://www.hammerdb.com/docs3.3/ch03s05.html}
+		\label{fig:tpc-c}
+	\end{figure}
 \end{itemize}
 
 \section{Implementação}
 
 O sistema foi implementado utilizando o Docker Compose, com as ferramentas explicadas na sessão anterior,
 e está disponível no repositório do projeto.
-
-Além disso, para simular um ambiente de cloud, cada instância foi limitada a 8GB de RAM e 2 CPUs,
-além da introdução de latência de rede aleatória (150us $\pm$ 200us). 
 
 Os scripts de inicialização dos ambientes e execução dos benchmarks foram automatizados,
 facilitando a replicação dos experimentos e a coleta dos resultados.
