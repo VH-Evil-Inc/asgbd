@@ -1,0 +1,97 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+
+packages:
+  - apt-transport-https
+  - software-properties-common
+  - wget
+  - gnupg2
+  - openjdk-17-jdk
+
+write_files:
+  # Node Exporter Service
+  - path: /etc/systemd/system/node_exporter.service
+    owner: root:root
+    permissions: "0644"
+    content: |
+      [Unit]
+      Description=Prometheus Node Exporter
+      After=network.target
+      [Service]
+      User=node_exporter
+      Group=node_exporter
+      Type=simple
+      ExecStart=/usr/local/bin/node_exporter
+      [Install]
+      WantedBy=multi-user.target
+  # Cassandra Exporter Service
+  - path: /etc/systemd/system/cassandra_exporter.service
+    owner: root:root
+    permissions: "0644"
+    content: |
+      [Unit]
+      Description=Cassandra Exporter for Prometheus
+      After=network.target cassandra.service
+      [Service]
+      User=cassandra_exporter
+      Group=cassandra_exporter
+      Type=simple
+      ExecStart=/usr/local/bin/cassandra_exporter --config.file=/etc/cassandra_exporter/config.yml
+      Restart=on-failure
+      [Install]
+      WantedBy=multi-user.target
+  # Cassandra Exporter Config
+  - path: /etc/cassandra_exporter/config.yml
+    owner: root:root
+    permissions: "0644"
+    content: |
+      listenPort: 7070
+      cassandra:
+        username: ""
+        password: ""
+        jmxHost: "localhost"
+        jmxPort: 7199
+        ssl: false
+
+runcmd:
+  # Add Cassandra repository and install Cassandra
+  - curl -o /etc/apt/keyrings/apache-cassandra.asc https://downloads.apache.org/cassandra/KEYS
+  - echo "deb [signed-by=/etc/apt/keyrings/apache-cassandra.asc] https://debian.cassandra.apache.org 50x main" | sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list
+  - apt-get update
+  - apt-get install -y cassandra
+
+  # Configure Cassandra to listen on the private IP (adjust if you want to use hostname here instead)
+  - |
+    sed -i "s/^listen_address: localhost/listen_address: $(hostname -I | awk '{print $1}')/" /etc/cassandra/cassandra.yaml'
+  - |
+    sed -i "s/^rpc_address: localhost/rpc_address: 0.0.0.0/" /etc/cassandra/cassandra.yaml
+  - |
+    sed -i "s/^endpoint_snitch: SimpleSnitch/endpoint_snitch: GossipingPropertyFileSnitch/" /etc/cassandra/cassandra.yaml
+
+  # Set the seeds to all three DNS records
+  - |
+    sed -i "s/^seeds: .*/seeds: \"cassandra-01.private.do-usp.lelis.gay,cassandra-02.private.do-usp.lelis.gay,cassandra-03.private.do-usp.lelis.gay\"/" /etc/cassandra/cassandra.yaml
+
+  # Start Cassandra
+  - systemctl enable --now cassandra
+
+  # Install and run node_exporter
+  - wget https://github.com/prometheus/node_exporter/releases/download/v1.9.1/node_exporter-1.9.1.linux-amd64.tar.gz
+  - tar xvfz node_exporter-*.linux-amd64.tar.gz
+  - mv node_exporter-*/node_exporter /usr/local/bin/
+  - useradd --no-create-home --shell /bin/false node_exporter
+  - chown node_exporter:node_exporter /usr/local/bin/node_exporter
+  - systemctl daemon-reload
+  - systemctl enable --now node_exporter
+
+  # Install and run cassandra_exporter
+  - wget https://github.com/criteo/cassandra_exporter/releases/download/v2.3.8/cassandra_exporter-2.3.8.tar.gz
+  - tar xvfz cassandra_exporter-*.tar.gz
+  - mv cassandra_exporter-*/cassandra_exporter /usr/local/bin/
+  - useradd --no-create-home --shell /bin/false cassandra_exporter
+  - chown cassandra_exporter:cassandra_exporter /usr/local/bin/cassandra_exporter
+  - mkdir -p /etc/cassandra_exporter
+  - chown -R cassandra_exporter:cassandra_exporter /etc/cassandra_exporter
+  - systemctl daemon-reload
+  - systemctl enable --now cassandra_exporter

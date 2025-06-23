@@ -1,0 +1,79 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+
+packages:
+  - apt-transport-https
+  - software-properties-common
+  - wget
+  - gnupg2
+
+write_files:
+  # Node Exporter Service
+  - path: /etc/systemd/system/node_exporter.service
+    owner: root:root
+    permissions: "0644"
+    content: |
+      [Unit]
+      Description=Prometheus Node Exporter
+      After=network.target
+      [Service]
+      User=node_exporter
+      Group=node_exporter
+      Type=simple
+      ExecStart=/usr/local/bin/node_exporter
+      [Install]
+      WantedBy=multi-user.target
+  # Postgres Exporter Service
+  - path: /etc/systemd/system/postgres_exporter.service
+    owner: root:root
+    permissions: "0644"
+    content: |
+      [Unit]
+      Description=postgres_exporter for prometheus
+      Wants=postgresql.service
+      After=network-online.target postgresql.service
+      [Service]
+      User=postgres
+      Group=postgres
+      EnvironmentFile=/etc/postgres_exporter/env
+      ExecStart=/usr/local/bin/postgres_exporter
+      Restart=on-failure
+      [Install]
+      WantedBy=default.target
+
+runcmd:
+  # Add Citus repository and install PostgreSQL + Citus
+  - curl https://install.citusdata.com/community/deb.sh | sudo bash || exit 0
+  # Work around missing support for citus in noble
+  - sed -i 's/noble/jammy/g' /etc/apt/sources.list.d/citusdata_community.list
+  - apt-get update -y
+  - apt-get install -y postgresql-17-citus-13.0
+  # Preload Citus extension
+  - echo "shared_preload_libraries = 'citus'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  # Listen on all interfaces
+  - echo "listen_addresses = '*'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  - echo "max_connections = 10000" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  # Allow local and private network access (adjust as needed for your network)
+  - echo "host all all 172.16.12.0/24 trust" | sudo tee -a /etc/postgresql/17/main/pg_hba.conf
+  - echo "host all all 127.0.0.1/32 trust" | sudo tee -a /etc/postgresql/17/main/pg_hba.conf
+  - echo "host all all ::1/128 trust" | sudo tee -a /etc/postgresql/17/main/pg_hba.conf
+  # Restart PostgreSQL
+  - systemctl restart postgresql@17-main
+  # Install node_exporter
+  - wget https://github.com/prometheus/node_exporter/releases/download/v1.9.1/node_exporter-1.9.1.linux-amd64.tar.gz
+  - tar xvfz node_exporter-*.linux-amd64.tar.gz
+  - mv node_exporter-*/node_exporter /usr/local/bin/
+  - useradd --no-create-home --shell /bin/false node_exporter
+  - chown node_exporter:node_exporter /usr/local/bin/node_exporter
+  - systemctl daemon-reload
+  - systemctl enable --now node_exporter
+  # Install postgres_exporter
+  - wget https://github.com/prometheus-community/postgres_exporter/releases/download/v0.17.1/postgres_exporter-0.17.1.linux-amd64.tar.gz
+  - tar xvfz postgres_exporter-*.linux-amd64.tar.gz
+  - mv postgres_exporter-*/postgres_exporter /usr/local/bin/
+  - mkdir -p /etc/postgres_exporter
+  - echo "DATA_SOURCE_NAME='dbname=postgres user=postgres host=/var/run/postgresql port=5432 sslmode=disable'" >> /etc/postgres_exporter/env
+  - chown -R postgres:postgres /etc/postgres_exporter
+  - systemctl daemon-reload
+  - systemctl enable --now postgres_exporter

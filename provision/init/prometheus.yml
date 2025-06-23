@@ -1,0 +1,33 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Scrape node_exporter metrics from all Citus and Cassandra nodes
+  - job_name: "node"
+    static_configs:
+      - targets:
+          - "citus-master.private.do-usp.lelis.gay:9100"
+          - "citus-worker-01.private.do-usp.lelis.gay:9100"
+          - "citus-worker-02.private.do-usp.lelis.gay:9100"
+          - "citus-worker-03.private.do-usp.lelis.gay:9100"
+          - "cassandra-01.private.do-usp.lelis.gay:9100"
+          - "cassandra-02.private.do-usp.lelis.gay:9100"
+          - "cassandra-03.private.do-usp.lelis.gay:9100"
+
+  # Scrape postgres_exporter metrics from all Citus nodes
+  - job_name: "postgres"
+    static_configs:
+      - targets:
+          - "citus-master.private.do-usp.lelis.gay:9187"
+          - "citus-worker-01.private.do-usp.lelis.gay:9187"
+          - "citus-worker-02.private.do-usp.lelis.gay:9187"
+          - "citus-worker-03.private.do-usp.lelis.gay:9187"
+
+  # Scrape cassandra_exporter metrics from all Cassandra nodes
+  - job_name: "cassandra"
+    static_configs:
+      - targets:
+          - "cassandra-01.private.do-usp.lelis.gay:7070"
+          - "cassandra-02.private.do-usp.lelis.gay:7070"
+          - "cassandra-03.private.do-usp.lelis.gay:7070"
