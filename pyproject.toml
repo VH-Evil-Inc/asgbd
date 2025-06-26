@@ -1,0 +1,6 @@
+[project]
+name = "asgbd"
+version = "2.0.0"
+readme = "readme.md"
+requires-python = ">=3.12"
+dependencies = ["cassandra-driver>=3.29.2", "psycopg2-binary>=2.9.10"]

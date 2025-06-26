@@ -1,0 +1,6 @@
+[submodule "db/py-tpcc"]
+	path = db/py-tpcc
+	url = https://github.com/mongodb-labs/py-tpcc.git
+[submodule "py-tpcc"]
+	path = py-tpcc
+	url = https://github.com/mongodb-labs/py-tpcc.git

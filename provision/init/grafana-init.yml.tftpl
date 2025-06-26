@@ -11,7 +11,6 @@ packages:
   - jq
 
 write_files:
-  # Prometheus data source for Grafana
   - path: /etc/grafana/provisioning/datasources/prometheus.yaml
     owner: root:root
     permissions: "0644"
@@ -24,7 +23,6 @@ write_files:
         url: http://localhost:9090
         isDefault: true
 
-  # Dashboard provider definition
   - path: /etc/grafana/provisioning/dashboards/default.yaml
     owner: root:root
     permissions: "0644"
@@ -40,7 +38,6 @@ write_files:
         options:
           path: /var/lib/grafana/dashboards
 
-  # Prometheus configuration file
   - path: /etc/prometheus/prometheus.yml
     defer: true
     owner: prometheus:prometheus
@@ -51,55 +48,50 @@ write_files:
         evaluation_interval: 15s
 
       scrape_configs:
-        # Scrape node_exporter metrics from all Citus and Cassandra nodes
         - job_name: 'node'
           static_configs:
             - targets:
-              - 'postgres-01.private.do-usp.lelis.gay:9100'
-              - 'postgres-02.private.do-usp.lelis.gay:9100'
-              - 'postgres-03.private.do-usp.lelis.gay:9100'
-              - 'cassandra-01.private.do-usp.lelis.gay:9100'
-              - 'cassandra-02.private.do-usp.lelis.gay:9100'
-              - 'cassandra-03.private.do-usp.lelis.gay:9100'
+              - localhost:9100
+%{ for host in node_targets ~}
+              - '${host}'
+%{ endfor ~}
+              labels:
+                role: 'node'
 
-        # Scrape postgres_exporter metrics from all Citus nodes
+%{ if length(postgres_targets) > 0 ~}
         - job_name: 'postgres'
           static_configs:
             - targets:
-              - 'postgres-01.private.do-usp.lelis.gay:9187'
-              - 'postgres-02.private.do-usp.lelis.gay:9187'
-              - 'postgres-03.private.do-usp.lelis.gay:9187'
+%{ for host in postgres_targets ~}
+              - '${host}'
+%{ endfor ~}
+              labels:
+                role: 'postgres'
+%{ endif ~}
 
-        # Scrape cassandra_exporter metrics from all Cassandra nodes
+%{ if length(cassandra_targets) > 0 ~}
         - job_name: 'cassandra'
           static_configs:
             - targets:
-              - 'cassandra-01.private.do-usp.lelis.gay:7070'
-              - 'cassandra-02.private.do-usp.lelis.gay:7070'
-              - 'cassandra-03.private.do-usp.lelis.gay:7070'
+%{ for host in cassandra_targets ~}
+              - '${host}'
+%{ endfor ~}
+              labels:
+                role: 'cassandra'
+%{ endif ~}
 
 runcmd:
-  # Add Grafana GPG key and install Grafana
   - mkdir -p /etc/apt/keyrings
   - wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg > /dev/null
   - echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list
   - apt-get update -y
   - DEBIAN_FRONTEND=noninteractive apt-get install -yq grafana
 
-  # Create dashboard directory
   - mkdir -p /var/lib/grafana/dashboards
 
-  # Download and install node_exporter dashboard (ID 1860)
   - wget -O /var/lib/grafana/dashboards/node_exporter.json https://grafana.com/api/dashboards/1860/revisions/latest/download
-
-  # Download and install postgres_exporter dashboard (ID 12485)
   - wget -O /var/lib/grafana/dashboards/postgres_exporter.json https://grafana.com/api/dashboards/12485/revisions/latest/download
-
-  # Download and install cassandra_exporter dashboard
   - wget -O /var/lib/grafana/dashboards/cassandra_exporter.json https://github.com/criteo/cassandra_exporter/raw/refs/heads/master/grafana/cassandra_default.json
 
-  # Start and enable Prometheus
   - systemctl enable --now prometheus
-
-  # Start and enable Grafana
   - systemctl enable --now grafana-server

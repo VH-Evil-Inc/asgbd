@@ -68,51 +68,16 @@ resource "digitalocean_firewall" "asgbd" {
   }
 }
 
-# Grafana droplet
-resource "digitalocean_droplet" "grafana" {
-  name    = "tf-usp-asgbd-grafana"
-  region  = local.do_region
-  size    = local.do_grafana_size
-  image   = "ubuntu-24-04-x64"
-  vpc_uuid = digitalocean_vpc.asgbd.id
-  ssh_keys = [digitalocean_ssh_key.asgbd.id]
-
-  tags = [digitalocean_tag.asgbd.id]
-
-  user_data = file("./init/grafana-init.yml")
-}
-
-# DNS for the droplet
-resource "digitalocean_record" "grafana" {
-  domain = data.digitalocean_domain.base.id
-  name    = "grafana"
-  type    = "A"
-  value   = digitalocean_droplet.grafana.ipv4_address
-  ttl     = 60
-}
-
-resource "digitalocean_record" "grafana_private" {
-  domain = data.digitalocean_domain.base.id
-  name    = "grafana.private"
-  type    = "A"
-  value   = digitalocean_droplet.grafana.ipv4_address_private
-  ttl     = 60
-}
-
-output "grafana_ip" {
-  value = digitalocean_droplet.grafana.ipv4_address
-}
-
 # Benchmark droplet
 resource "digitalocean_droplet" "benchmark" {
   name    = "tf-usp-asgbd-benchmark"
   region  = local.do_region
   size    = local.do_bench_size
-  image   = "ubuntu-24-04-x64"
+  image   = "ubuntu-22-04-x64"
   vpc_uuid = digitalocean_vpc.asgbd.id
   ssh_keys = [digitalocean_ssh_key.asgbd.id]
-
   tags = [digitalocean_tag.asgbd.id]
+  user_data = file("./init/benchmark-init.yml")
 }
 
 resource "digitalocean_record" "benchmark" {
@@ -136,79 +101,47 @@ output "benchmark_ip" {
 }
 
 # PostgreSQL Citus Master
-resource "digitalocean_droplet" "citus_master" {
-  name    = "tf-usp-asgbd-citus-master"
+resource "digitalocean_droplet" "postgres" {
+  count   = var.postgres_size
+  name    = "tf-usp-asgbd-postgres-${format("%02d", count.index + 1)}"
   region  = local.do_region
-  size    = local.do_instance_size
-  image   = "ubuntu-24-04-x64"
+  size    = var.postgres_instance
+  image   = "ubuntu-22-04-x64"
   vpc_uuid = digitalocean_vpc.asgbd.id
   ssh_keys = [digitalocean_ssh_key.asgbd.id]
   tags = [digitalocean_tag.asgbd.id]
-  user_data = file("./init/citus-master-init.yml")
+  user_data = count.index == 0 ? file("./init/citus-master-init.yml") : file("./init/citus-worker-init.yml")
 }
 
-resource "digitalocean_record" "citus_master" {
-  domain = data.digitalocean_domain.base.id
-  name    = "citus-master"
-  type    = "A"
-  value   = digitalocean_droplet.citus_master.ipv4_address
-  ttl     = 60
-}
-
-resource "digitalocean_record" "citus_master_private" {
-  domain = data.digitalocean_domain.base.id
-  name    = "citus-master.private"
-  type    = "A"
-  value   = digitalocean_droplet.citus_master.ipv4_address_private
-  ttl     = 60
-}
-
-output "citus_master_ip" {
-  value = digitalocean_droplet.citus_master.ipv4_address
-}
-
-# PostgreSQL Citus Workers
-resource "digitalocean_droplet" "citus_worker" {
-  count   = 3
-  name    = "tf-usp-asgbd-citus-worker-${format("%02d", count.index + 1)}"
-  region  = local.do_region
-  size    = local.do_instance_size
-  image   = "ubuntu-24-04-x64"
-  vpc_uuid = digitalocean_vpc.asgbd.id
-  ssh_keys = [digitalocean_ssh_key.asgbd.id]
-  tags = [digitalocean_tag.asgbd.id]
-  user_data = file("./init/citus-worker-init.yml")
-}
-
-resource "digitalocean_record" "citus_worker" {
-  count   = 3
+resource "digitalocean_record" "postgres" {
+  count   = var.postgres_size
   domain  = data.digitalocean_domain.base.id
-  name    = "citus-worker-${format("%02d", count.index + 1)}"
+  name    = "postgres-${format("%02d", count.index + 1)}"
   type    = "A"
-  value   = digitalocean_droplet.citus_worker[count.index].ipv4_address
+  value   = digitalocean_droplet.postgres[count.index].ipv4_address
   ttl     = 60
 }
 
-resource "digitalocean_record" "citus_worker_private" {
-  count   = 3
+resource "digitalocean_record" "postgres_private" {
+  count   = var.postgres_size
   domain  = data.digitalocean_domain.base.id
-  name    = "citus-worker-${format("%02d", count.index + 1)}.private"
+  name    = "postgres-${format("%02d", count.index + 1)}.private"
   type    = "A"
-  value   = digitalocean_droplet.citus_worker[count.index].ipv4_address_private
+  value   = digitalocean_droplet.postgres[count.index].ipv4_address_private
   ttl     = 60
 }
 
-output "citus_worker_ips" {
-  value = digitalocean_droplet.citus_worker[*].ipv4_address
+output "postgres_ips" {
+  value = digitalocean_droplet.postgres[*].ipv4_address
 } 
 
-# Cassandra Cluster (3 machines)
+# Cassandra Cluster
 resource "digitalocean_droplet" "cassandra" {
-  count   = 3
+  count   = var.cassandra_size
   name    = "tf-usp-asgbd-cassandra-${format("%02d", count.index + 1)}"
   region  = local.do_region
-  size    = local.do_instance_size
-  image   = "ubuntu-24-04-x64"
+  size    = var.cassandra_instance
+  image   = "ubuntu-22-04-x64"
   vpc_uuid = digitalocean_vpc.asgbd.id
   ssh_keys = [digitalocean_ssh_key.asgbd.id]
   tags = [digitalocean_tag.asgbd.id]
@@ -216,7 +149,7 @@ resource "digitalocean_droplet" "cassandra" {
 }
 
 resource "digitalocean_record" "cassandra" {
-  count   = 3
+  count   = var.cassandra_size
   domain  = data.digitalocean_domain.base.id
   name    = "cassandra-${format("%02d", count.index + 1)}"
   type    = "A"
@@ -225,7 +158,7 @@ resource "digitalocean_record" "cassandra" {
 }
 
 resource "digitalocean_record" "cassandra_private" {
-  count   = 3
+  count   = var.cassandra_size
   domain  = data.digitalocean_domain.base.id
   name    = "cassandra-${format("%02d", count.index + 1)}.private"
   type    = "A"
@@ -237,5 +170,72 @@ output "cassandra_ips" {
   value = digitalocean_droplet.cassandra[*].ipv4_address
 }
 
-# TODO: generate/create prometheus config and grafana dashboards
-# TODO: domain assignments
+# Setup prometheus scrape targets
+locals {
+  postgres_targets = [
+    for r in digitalocean_record.postgres :
+    "${r.fqdn}:9187"
+  ]
+
+  cassandra_targets = [
+    for r in digitalocean_record.cassandra :
+    "${r.fqdn}:7070"
+  ]
+
+  node_targets = concat(
+    [for r in digitalocean_record.postgres : "${r.fqdn}:9100"],
+    [for r in digitalocean_record.cassandra : "${r.fqdn}:9100"]
+  )
+}
+
+# Create grafana cloud config from template
+data "cloudinit_config" "grafana" {
+  gzip          = false
+  base64_encode = false
+
+  part {
+    filename     = "cloud-init.yml"
+    content_type = "text/cloud-config"
+    content = templatefile("./init/grafana-init.yml.tftpl", {
+      postgres_targets  = local.postgres_targets
+      cassandra_targets = local.cassandra_targets
+      node_targets      = local.node_targets
+    })
+  }
+}
+
+# Grafana droplet
+resource "digitalocean_droplet" "grafana" {
+  name    = "tf-usp-asgbd-grafana"
+  region  = local.do_region
+  size    = local.do_grafana_size
+  image   = "ubuntu-22-04-x64"
+  vpc_uuid = digitalocean_vpc.asgbd.id
+  ssh_keys = [digitalocean_ssh_key.asgbd.id]
+
+  tags = [digitalocean_tag.asgbd.id]
+
+  user_data = data.cloudinit_config.grafana.rendered
+}
+
+# DNS for the droplet
+resource "digitalocean_record" "grafana" {
+  domain = data.digitalocean_domain.base.id
+  name    = "grafana"
+  type    = "A"
+  value   = digitalocean_droplet.grafana.ipv4_address
+  ttl     = 60
+}
+
+resource "digitalocean_record" "grafana_private" {
+  domain = data.digitalocean_domain.base.id
+  name    = "grafana.private"
+  type    = "A"
+  value   = digitalocean_droplet.grafana.ipv4_address_private
+  ttl     = 60
+}
+
+output "grafana_ip" {
+  value = digitalocean_droplet.grafana.ipv4_address
+}
+

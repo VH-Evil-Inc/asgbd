@@ -1,0 +1,12 @@
+FROM cassandra:5.0-jammy
+
+RUN apt-get update\
+    && apt-get install -y --no-install-recommends \
+       iproute2\
+       ca-certificates\
+    && rm -rf /var/lib/apt/lists/*
+
+
+COPY cassandra_healthcheck /
+
+HEALTHCHECK --interval=4s --start-period=6s CMD ./cassandra_healthcheck

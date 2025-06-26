@@ -46,14 +46,25 @@ runcmd:
   # Add Citus repository and install PostgreSQL + Citus
   - curl https://install.citusdata.com/community/deb.sh | sudo bash || exit 0
   # Work around missing support for citus in noble
-  - sed -i 's/noble/jammy/g' /etc/apt/sources.list.d/citusdata_community.list
+  # - sed -i 's/noble/jammy/g' /etc/apt/sources.list.d/citusdata_community.list
   - apt-get update -y
-  - apt-get install -y postgresql-17-citus-13.0
+  - DEBIAN_FRONTEND=noninteractive apt-get install -yq postgresql-17-citus-13.0
   # Preload Citus extension
   - echo "shared_preload_libraries = 'citus'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
   # Listen on all interfaces
   - echo "listen_addresses = '*'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
-  - echo "max_connections = 10000" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  # Configuration Tuning
+  - echo "shared_buffers = '2GB'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  - echo "work_mem = '128MB'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  - echo "maintenance_work_mem = '1GB'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  - echo "max_parallel_workers_per_gather = 4" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  - echo "max_worker_processes = 20" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  - echo "max_connections = 1000" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  - echo "synchronous_commit = off" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  - echo "citus.max_adaptive_executor_pool_size = 100" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  - echo "citus.executor_slow_start_interval = '10ms'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  - echo "citus.coordinator_aggregation_strategy = 'disabled'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  - echo "citus.enable_repartition_joins = on" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
   # Allow local and private network access (adjust as needed for your network)
   - echo "host all all 172.16.12.0/24 trust" | sudo tee -a /etc/postgresql/17/main/pg_hba.conf
   - echo "host all all 127.0.0.1/32 trust" | sudo tee -a /etc/postgresql/17/main/pg_hba.conf

@@ -1,0 +1,133 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - software-properties-common
+  - git
+  - openjdk-17-jdk
+  - python2
+  - libfuse2
+
+users:
+  - name: bench
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+
+write_files:
+  - path: /home/bench/run_ycsb.sh
+    content: |
+      #!/bin/bash
+      # YCSB Benchmark Runner for Cassandra (using pre-built YCSB release)
+      CASSANDRA_IP="${1:-cassandra-01.private.do-usp.lelis.gay}"
+      WORKLOAD="${2:-workloada}"
+      RECORDCOUNT="${3:-10000000}"
+      OPERATIONCOUNT="${4:-10000000}"
+      THREADS="${5:-32}"
+
+      cd /home/bench/ycsb-0.17.0
+      ./bin/ycsb load cassandra-cql -P workloads/"$WORKLOAD" -p hosts="$CASSANDRA_IP" -p recordcount="$RECORDCOUNT" -p operationcount="$OPERATIONCOUNT" -threads "$THREADS" -s
+      ./bin/ycsb run cassandra-cql -P workloads/"$WORKLOAD" -p hosts="$CASSANDRA_IP" -p recordcount="$RECORDCOUNT" -p operationcount="$OPERATIONCOUNT" -threads "$THREADS" -s -p hdrhistogram.fileoutput=true -p hdrhistogram.output.path=ycsb.hdr
+    owner: bench:bench
+    permissions: "0755"
+    defer: true
+  - path: /home/bench/cassandra_schema.cql
+    content: |
+      CREATE KEYSPACE ycsb
+      WITH REPLICATION = {'class' : 'SimpleStrategy', 'replication_factor': 3};
+
+      USE ycsb;
+
+      CREATE TABLE usertable (
+        y_id VARCHAR PRIMARY KEY,
+        field0 VARCHAR,
+        field1 VARCHAR,
+        field2 VARCHAR,
+        field3 VARCHAR,
+        field4 VARCHAR,
+        field5 VARCHAR,
+        field6 VARCHAR,
+        field7 VARCHAR,
+        field8 VARCHAR,
+        field9 VARCHAR);
+    owner: bench:bench
+    permissions: "0644"
+    defer: true
+  - path: /home/bench/apply_cassandra_schema.sh
+    content: |
+      #!/bin/bash
+      # Apply Cassandra schema using Dockerized cqlsh to a remote cluster
+      # Usage: ./apply_cassandra_schema.sh [HOST] [PORT] [USER] [PASSWORD]
+      # Example: ./apply_cassandra_schema.sh cassandra-01.private.do-usp.lelis.gay 9042
+
+      HOST="${1:-cassandra-01.private.do-usp.lelis.gay}"
+      PORT="${2:-9042}"
+
+      docker run --rm \
+        --network host \
+        -v /home/bench/cassandra_schema.cql:/schema.cql \
+        -e CQLSH_HOST="$HOST" \
+        -e CQLSH2_PORT="$PORT" \
+      cassandra:4.1 cqlsh -f /schema.cql
+    owner: bench:bench
+    permissions: "0755"
+    defer: true
+  # Could add cyclerate
+  - path: /home/bench/run_nb5.sh
+    content: |
+      #!/bin/bash
+      RF=${1:-3}
+      ./nb5 run \
+          workload=cql_timeseries2 \
+          host=cassandra-01.private.do-usp.lelis.gay \
+          port=9042 \
+          localdc=dc1\
+          driver=cql\
+          keyspace=benchmark \
+          cycles=100000 \
+          threads=32 \
+          alias=asgbd \
+          rf=$RF \
+          --progress console:5s \
+          --report-csv-to ./results \
+          --report-summary-to stdout:10
+
+    owner: bench:bench
+    permissions: "0755"
+    defer: true
+
+runcmd:
+  # Install Docker
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+  - apt update
+  - apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  - usermod -aG docker bench
+
+  # Clone benchmark repository
+  - git clone https://github.com/VH-Evil-Inc/asgbd.git /home/bench/asgbd
+
+  # Install NoSQLBench
+  - curl -L https://github.com/nosqlbench/nosqlbench/releases/download/5.21.7-release/nb5 -o /home/bench/nb5
+  - chown bench:bench /home/bench/nb5
+  - chmod +x /home/bench/nb5
+
+  # Download and extract YCSB 0.17.0
+  - curl -L https://github.com/brianfrankcooper/YCSB/releases/download/0.17.0/ycsb-0.17.0.tar.gz -o /home/bench/ycsb-0.17.0.tar.gz
+  - tar -xzf /home/bench/ycsb-0.17.0.tar.gz -C /home/bench
+  - chown -R bench:bench /home/bench/ycsb-0.17.0
+
+  # Set up Python 2 for YCSB (optional, if not already installed by the package)
+  - ln -sf /usr/bin/python2 /usr/bin/python
+
+  # Copy SSH keys from root to bench
+  - mkdir -p /home/bench/.ssh
+  - cp /root/.ssh/authorized_keys /home/bench/.ssh/
+  - chown -R bench:bench /home/bench/.ssh
+  - chmod 700 /home/bench/.ssh
+  - chmod 600 /home/bench/.ssh/authorized_keys
+
+final_message: "Setup complete. User 'bench' created with sudo, YCSB 0.17.0, schema scripts, and SSH keys ready."

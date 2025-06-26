@@ -1,0 +1,99 @@
+name: vh-evil-inc-cassandra-cluster
+services:
+  cassandra-seed:
+    build:
+      dockerfile: Dockerfile.cassandra
+    container_name: "${COMPOSE_PROJECT_NAME:-cassandra}_seed"
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: "8G"
+    ports:
+      - "9042:9042"
+    environment:
+      CASSANDRA_CLUSTER_NAME: "${CASSANDRA_CLUSTER_NAME:-EvilIncCluster}"
+      CASSANDRA_DC: "${CASSANDRA_DC:-DC1}"
+      CASSANDRA_RACK: "${CASSANDRA_RACK:-RACK1}"
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+      HEAP_NEWSIZE: "800M"
+      MAX_HEAP_SIZE: "4096M"
+      JVM_OPTS: "-Dcassandra.skip_wait_for_gossip_to_settle=0"
+    volumes:
+      - cassandra-seed-data:/var/lib/cassandra
+    healthcheck:
+      test: ["CMD", "bash", "/cassandra_healthcheck"]
+      interval: 4s
+      start_period: 12s
+      retries: 12
+    networks:
+      default:
+        aliases:
+          - cassandra
+
+  cassandra-node1:
+    build:
+      dockerfile: Dockerfile.cassandra
+    container_name: "${COMPOSE_PROJECT_NAME:-cassandra}_node1"
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: "8G"
+    environment:
+      CASSANDRA_SEEDS: "cassandra-seed"
+      CASSANDRA_CLUSTER_NAME: "${CASSANDRA_CLUSTER_NAME:-EvilIncCluster}"
+      CASSANDRA_DC: "${CASSANDRA_DC:-DC1}"
+      CASSANDRA_RACK: "${CASSANDRA_RACK:-RACK1}"
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+      HEAP_NEWSIZE: "800M"
+      MAX_HEAP_SIZE: "4096M"
+    depends_on:
+      cassandra-seed:
+        condition: service_healthy
+    volumes:
+      - cassandra-node1-data:/var/lib/cassandra
+      - ./healthcheck.sh:/healthcheck.sh:ro
+    healthcheck:
+      test: ["CMD", "bash", "/healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  cassandra-node2:
+    build:
+      dockerfile: Dockerfile.cassandra
+    container_name: "${COMPOSE_PROJECT_NAME:-cassandra}_node2"
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: "8G"
+    environment:
+      CASSANDRA_SEEDS: "cassandra-seed"
+      CASSANDRA_CLUSTER_NAME: "${CASSANDRA_CLUSTER_NAME:-EvilIncCluster}"
+      CASSANDRA_DC: "${CASSANDRA_DC:-DC1}"
+      CASSANDRA_RACK: "${CASSANDRA_RACK:-RACK1}"
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+      HEAP_NEWSIZE: "800M"
+      MAX_HEAP_SIZE: "4096M"
+    depends_on:
+      cassandra-seed:
+        condition: service_healthy
+    volumes:
+      - cassandra-node2-data:/var/lib/cassandra
+      - ./healthcheck.sh:/healthcheck.sh:ro
+    healthcheck:
+      test: ["CMD", "bash", "/healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  cassandra-seed-data:
+  cassandra-node1-data:
+  cassandra-node2-data:
+
+networks:
+  default:
+    name: vh-evil-inc

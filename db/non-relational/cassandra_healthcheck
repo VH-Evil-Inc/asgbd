@@ -1,0 +1,11 @@
+#!/bin/bash
+
+host="$(hostname -i || echo '127.0.0.1')"
+port=9042
+
+# Try to connect to Cassandra using cqlsh and run a simple query
+cqlsh ${host} ${port} -e "DESCRIBE KEYSPACES" --connect-timeout=5 > /dev/null 2>&1
+
+if [ $? -ne 0 ]; then
+  exit 1
+fi

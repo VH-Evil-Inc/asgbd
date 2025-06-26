@@ -32,7 +32,6 @@ The machine assignment will be the following:
 - Master
 - Worker 1
 - Worker 2
-- Worker 3
 
 ### Cassandra
 
@@ -46,3 +45,18 @@ The Terraform provisioning setup accompanies cloud-init scripts to properly
 provision every machine. The only manual step required is to add the worker
 nodes to Citus, which can be done by running the `add_workers.sh` script at
 the master node.
+
+## Provisioning each setup
+
+To provision each setup, you can run plans in the following format:
+
+```sh
+terraform plan -out tfplan -var-file=./vars/cassandra-single.tfvars
+terraform apply tfplan
+```
+
+Where `cassandra-single.tfvars` is the variables file for the setup. There are
+variables for each setup tested, the provisioning scripts are setup in a way
+to prepare the cluster for each setup, with the only manual action being on
+the Citus master node to add the workers (which could be automated, but is
+was deemed to be not worth the effort here).
