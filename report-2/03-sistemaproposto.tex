@@ -1,0 +1,53 @@
+\section{Sistema Proposto}
+
+O sistema proposto foi desenvolvido para comparar o desempenho de diferentes arquiteturas e configurações de uma base de dados do Apache Cassandra.
+
+O benchmark utilizado será o Yahoo! Cloud Serving Benchmarking (YCSB), desenvolvido pelo Yahoo!,
+e reconhecido como um padrão do mercado para avaliar desempenho e escalabilidade de sistemas 
+de banco de dados NoSQL. 
+
+Para garantir fácil reprodutibilidade e configuração, 
+ambos os ambientes serão configurados utilizando o \textbf{Docker Compose}, sendo executado em um ambiente de núvem no \textbf{Digital Ocean} 
+mediado pelo \textbf{Terraform}.
+
+\subsection{Apache Cassandra}
+	O Apache Cassandra é um banco de dados NoSQL distribuído, projetado para lidar com grandes volumes de dados em ambientes distribuídos.
+	Decidimos por comparar o desempenho do Cassandra em diferentes configurações,
+	avaliando como a distribuição de dados, replicação e configuração de nós afetam o desempenho e a escalabilidade do sistema.
+
+	As configurações a serem testadas incluem:
+	\begin{itemize}
+		\item Configuração padrão do Cassandra com um único nó;
+		\item Configuração com 3 nós, sem replicação dos dados;
+		\item Configuração com 3 nós, com replicação dos dados;
+	\end{itemize}
+
+\subsection{Yahoo! Cloud Serving Benchmarking (YCSB)}
+	O YCSB é um benchmark amplamente utilizado para avaliar o desempenho de sistemas de banco de dados NoSQL.
+	Ele permite medir a latência e a taxa de transferência de operações de leitura e escrita em diferentes configurações de banco de dados.
+	Para este projeto, utilizaremos o YCSB para executar uma série de testes em cada configuração do Cassandra,
+	com foco em medir o throughput e a latência das operações.
+
+	O YCSB utiliza um modelo de dados simples baseado em chave-valor. O formato padrão do banco de dados é uma tabela chamada geralmente de usertable, que possui:
+    \begin{itemize}
+		\item Uma chave primária \textbf{YCSB\_KEY};
+		\item Um conjunto de colunas de dados, FIELD0, FIELD1, ..., FIELD9 (por padrão, são 10 campos), cada uma armazenando por padrão valores do tipo string.
+	\end{itemize}	
+
+	O YCSB executa um conjunto padrão de operações que simulam o comportamento de aplicações reais sobre bancos NoSQL ou relacionais. As operações padrão são:
+	\begin{itemize}
+		\item Insert: Insere um novo registro.
+		\item Read: Lê um registro com base na chave, podendo ler todos os campos ou apenas um campo específico.
+		\item Update: Atualiza um ou mais campos de um registro existente.
+		\item Delete: Remove um registro com base na chave.
+		\item Scan: Faz uma varredura sequencial de múltiplos registros a partir de uma chave inicial, retornando um número configurável de registros.
+	\end{itemize}
+
+\section{Implementação}
+
+O tanto o sistema como a execução do benchmark foram implementado utilizando o Docker Compose e o Terraform.
+
+Os scripts de inicialização dos ambientes e execução dos benchmarks foram automatizados,
+facilitando a replicação dos experimentos e a coleta dos resultados. 
+Os comandos para reproduzir o sistema e executar o benchmark estão disponíveis no readme do repositório.
+

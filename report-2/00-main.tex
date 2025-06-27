@@ -1,0 +1,104 @@
+\documentclass[11pt,oneside,a4paper,article,brazil,chapter=title]{abntex2}
+\usepackage[top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{times}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{float}
+\usepackage{csquotes}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{indentfirst}
+\usepackage{url}
+\usepackage[alf,num]{abntex2cite}
+\usepackage{pdflscape}
+
+\usepackage{hyperref}
+\hypersetup{
+colorlinks=true,
+linkcolor=magenta,
+citecolor=magenta,
+urlcolor=magenta
+}
+
+\renewcommand\brazilhyphenmins{22} 
+
+\titulo{Trabalho 2 de Arquitetura de SGBDs}
+\author{
+    Lívia Lelis - 12543822\\
+	Lourenço de Salles Roselino - 11796805\\
+    Samuel Figueiredo Veronez - 12542626
+}
+\data{05/2025}
+\instituicao{Universidade de São Paulo - USP}
+\newcommand{\departamento}{Departamento de Computação}
+\newcommand{\edc}{Instituto De Ciências Matemáticas e de Computação - ICMC}
+\local{São Carlos - SP}
+\newcommand{\tipo}{SCC0243 - Arquitetura de Sistemas Gerenciadores de Base de Dados}
+
+\renewcommand{\imprimircapa}{
+    \begin{center}
+    
+    {\ABNTEXchapterfont\LARGE\MakeUppercase\imprimirinstituicao} \par
+    {\ABNTEXchapterfont\large\uppercase{\edc}}
+    
+    {\noindent\rule{\textwidth}{0.1pt}}
+  
+	\begin{flushright}
+		Profa. Elaine Parros Machado de Sousa
+	\end{flushright}
+
+    
+    \vspace*{\fill}
+    {\ABNTEXchapterfont\bfseries\LARGE\imprimirtitulo}
+    \vspace*{\fill}
+    
+    \vspace*{\fill}
+    {\ABNTEXchapterfont\LARGE\tipo}
+    \vspace*{\fill}
+
+    \begin{flushright}
+      	Lívia Lelis \; \textit{12543822}\\
+		Lourenço de Salles Roselino \; \textit{11796805}\\
+		Samuel Figueiredo Veronez \; \textit{12542626}
+    \end{flushright}
+    
+    \vspace*{\fill}
+    {\large\imprimirlocal} \par
+    {\large\imprimirdata}
+    \vspace*{1cm}
+
+    \end{center}
+}
+
+\begin{document}
+
+\selectlanguage{brazil}
+
+\imprimircapa
+\clearpage
+
+\pdfbookmark[0]{\contentsname}{toc}
+
+\tableofcontents*
+\cleardoublepage
+
+\textual
+
+\include{01-introducao}
+
+\newpage
+\include{02-fundamentacao}
+
+\include{03-sistemaproposto}
+
+\include{05-resultados}
+
+\include{06-conclusao}
+
+\include{07-referencias}
+
+\postextual
+
+\end{document}
