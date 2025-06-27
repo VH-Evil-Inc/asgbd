@@ -1,34 +1,54 @@
 \section{Experimentos e Resultados}
 
-Para comparar o desempenho entre o PostgreSQL e o Citus, executamos os benchmarks TPC-C em ambos os sistemas.
-No caso do citus, utilizamos uma configuração de 3 nós trabalhadores e 1 nó coordenador. Além disso, para simular um ambiente de cloud, cada instância foi limitada a 8GB de RAM e 2 CPUs,
-além da introdução de latência de rede aleatória (150us $\pm$ 200us). 
+Para comparar o desempenho das arquiteturas propostas, realizamos o benchmark YCSB com as configurações do Cassandra descritas na Seção \ref{sec:arquitetura}.
+Os resultados estão descritos a seguir, com foco em throughput, latência e overheads de cada configuração.
 
-A carga é executada e em seguida o benchmark executa durante um período 5 minutos, 
-com 64 conexões simultâneas, e parâmetro do benchmark warehouses = 40.
+\subsection{Único Nó}
 
-Os resultados foram coletados e analisados utilizando o Grafana e o Prometheus,
-e serão discutidos nas seções a seguir.
 
-Vale ressaltar que no caso dos gráficos do Citus, os resultados foram coletados do nó coordenador,
-que é o responsável por coordenar as consultas e distribuir as tarefas entre os nós trabalhadores. 
-
-Os gráficos a seguir mostram o desempenho do sistema durante a execução do benchmark:
-\subsection{Resultados do TPC-C}
-\begin{figure}[H]
+	\begin{table}[H]
 	\centering
-	\includegraphics[width=0.8\textwidth]{imgs/citus.jpg}
-	\caption{Resultados do TPC-C para o Citus}
-	\label{fig:tpc-c}
-\end{figure}
+	\caption{Resultados do benchmark YCSB}
+	\begin{tabular}{lcccccc}
+	\hline
+	Operação & Operações & Latência Média (\textmu s) & Latência Mín (\textmu s) & Latência Máx (\textmu s) \\
+	\hline
+	INSERT   & 10\,000\,000 & 1\,222,82 & 197   & 148\,607 \\
+	READ     & 5\,000\,753  & 2\,296,55 & 220   & 135\,295 \\
+	UPDATE   & 4\,999\,247  & 1\,681,11 & 159   & 149\,759 \\
+	\hline
+	\end{tabular}
+	\end{table}
 
-\begin{figure}[H]
+\subsection{Três Nós, Sem Replicação}
+
+
+	\begin{table}[H]
 	\centering
-	\includegraphics[width=0.8\textwidth]{imgs/Postgres.jpg}
-	\caption{Resultados do TPC-C para o PostgreSQL}
-	\label{fig:tpc-c}
-\end{figure}
+	\caption{Resultados agregados do benchmark YCSB (Workload A)}
+	\begin{tabular}{lrrrrrr}
+	\hline
+	Operação & Operações & Latência Média (\textmu s) & Latência Mín (\textmu s) & Latência Máx (\textmu s) \\
+	\hline
+	INSERT   & 10\,000\,000 & 703,01 & 159 & 139\,135 \\
+	READ     & 4\,998\,961  & 759,82 & 210 & 97\,151  \\
+	UPDATE   & 5\,001\,039  & 656,09 & 160 & 95\,935  \\
+	\hline
+	\end{tabular}
+	\end{table}
 
-Como resultados, obtemos que O PostgreSQL atingiu 31405 operações novas por minuto e 72424 transações por minuto, 
-enquanto o Citus atingiu 15304 operações novas por minuto e 35762 transações por minuto.
-Além disso, o tempo das operações está registrado nas tabelas a seguir:
+\subsection{Três Nós, Com Replicação}
+
+	\begin{table}[H]
+	\centering
+	\caption{Resultados agregados do benchmark YCSB}
+	\begin{tabular}{lrrrrrr}
+	\hline
+	Operação & Operações & Latência Média (\textmu s) & Latência Mín (\textmu s) & Latência Máx (\textmu s) \\
+	\hline
+	INSERT   & 10\,000\,000 & 1\,514,36 & 186 & 149\,119  \\
+	READ     & 5\,000\,119  & 2\,334,83 & 268 & 125\,119  \\
+	UPDATE   & 4\,999\,881  & 1\,170,27 & 182 & 114\,431  \\
+	\hline
+	\end{tabular}
+	\end{table}
