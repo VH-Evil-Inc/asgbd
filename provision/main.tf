@@ -190,6 +190,8 @@ locals {
 
 # Create grafana cloud config from template
 data "cloudinit_config" "grafana" {
+  count = var.enable_grafana ? 1 : 0
+
   gzip          = false
   base64_encode = false
 
@@ -206,6 +208,8 @@ data "cloudinit_config" "grafana" {
 
 # Grafana droplet
 resource "digitalocean_droplet" "grafana" {
+  count   = var.enable_grafana ? 1 : 0
+
   name    = "tf-usp-asgbd-grafana"
   region  = local.do_region
   size    = local.do_grafana_size
@@ -215,27 +219,30 @@ resource "digitalocean_droplet" "grafana" {
 
   tags = [digitalocean_tag.asgbd.id]
 
-  user_data = data.cloudinit_config.grafana.rendered
+  user_data = data.cloudinit_config.grafana[0].rendered
 }
 
 # DNS for the droplet
 resource "digitalocean_record" "grafana" {
+  count = var.enable_grafana ? 1 : 0
+
   domain = data.digitalocean_domain.base.id
   name    = "grafana"
   type    = "A"
-  value   = digitalocean_droplet.grafana.ipv4_address
+  value   = digitalocean_droplet.grafana[0].ipv4_address
   ttl     = 60
 }
 
 resource "digitalocean_record" "grafana_private" {
+  count = var.enable_grafana ? 1 : 0
+
   domain = data.digitalocean_domain.base.id
   name    = "grafana.private"
   type    = "A"
-  value   = digitalocean_droplet.grafana.ipv4_address_private
+  value   = digitalocean_droplet.grafana[0].ipv4_address_private
   ttl     = 60
 }
 
-output "grafana_ip" {
-  value = digitalocean_droplet.grafana.ipv4_address
+output "grafana_ip" { 
+  value = digitalocean_droplet.grafana[*].ipv4_address
 }
-

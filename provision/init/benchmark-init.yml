@@ -18,6 +18,19 @@ users:
     shell: /bin/bash
 
 write_files:
+  - path: /home/bench/sysinfo.sh
+    content: |
+      #!/bin/bash
+      echo "System Information"
+      echo "------------------"
+      echo "CPU:"
+      cat /proc/cpuinfo
+      echo "Memory:"
+      cat /proc/meminfo
+      free -m
+    owner: bench:bench
+    permissions: "0755"
+    defer: true
   - path: /home/bench/run_ycsb.sh
     content: |
       #!/bin/bash
@@ -30,14 +43,15 @@ write_files:
 
       cd /home/bench/ycsb-0.17.0
       ./bin/ycsb load cassandra-cql -P workloads/"$WORKLOAD" -p hosts="$CASSANDRA_IP" -p recordcount="$RECORDCOUNT" -p operationcount="$OPERATIONCOUNT" -threads "$THREADS" -s
-      ./bin/ycsb run cassandra-cql -P workloads/"$WORKLOAD" -p hosts="$CASSANDRA_IP" -p recordcount="$RECORDCOUNT" -p operationcount="$OPERATIONCOUNT" -threads "$THREADS" -s -p hdrhistogram.fileoutput=true -p hdrhistogram.output.path=ycsb.hdr
+      ./bin/ycsb run cassandra-cql -P workloads/"$WORKLOAD" -p hosts="$CASSANDRA_IP" -p recordcount="$RECORDCOUNT" -p operationcount="$OPERATIONCOUNT" -threads "$THREADS" -s
     owner: bench:bench
     permissions: "0755"
     defer: true
-  - path: /home/bench/cassandra_schema.cql
+  - path: /home/bench/base_schema.cql
     content: |
+      DROP KEYSPACE IF EXISTS ycsb;
       CREATE KEYSPACE ycsb
-      WITH REPLICATION = {'class' : 'SimpleStrategy', 'replication_factor': 3};
+      WITH REPLICATION = {'class' : 'SimpleStrategy', 'replication_factor': %RF%};
 
       USE ycsb;
 
@@ -63,12 +77,17 @@ write_files:
       # Usage: ./apply_cassandra_schema.sh [HOST] [PORT] [USER] [PASSWORD]
       # Example: ./apply_cassandra_schema.sh cassandra-01.private.do-usp.lelis.gay 9042
 
-      HOST="${1:-cassandra-01.private.do-usp.lelis.gay}"
-      PORT="${2:-9042}"
+      REPLICATION_FACTOR="${1:-3}"
+      HOST="${2:-cassandra-01.private.do-usp.lelis.gay}"
+      PORT="${3:-9042}"
+
+      echo "Applying schema with replication factor $REPLICATION_FACTOR"
+      cp /home/bench/base_schema.cql /home/bench/schema.cql
+      sed -i "s/%RF%/$REPLICATION_FACTOR/g" /home/bench/schema.cql
 
       docker run --rm \
         --network host \
-        -v /home/bench/cassandra_schema.cql:/schema.cql \
+        -v /home/bench/schema.cql:/schema.cql \
         -e CQLSH_HOST="$HOST" \
         -e CQLSH2_PORT="$PORT" \
       cassandra:4.1 cqlsh -f /schema.cql
@@ -100,6 +119,8 @@ write_files:
     defer: true
 
 runcmd:
+  - curl -sSL https://repos.insights.digitalocean.com/install.sh | sudo bash
+
   # Install Docker
   - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
   - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null

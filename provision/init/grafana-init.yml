@@ -42,8 +42,7 @@ write_files:
 
   # Prometheus configuration file
   - path: /etc/prometheus/prometheus.yml
-    defer: true
-    owner: prometheus:prometheus
+    owner: root:root
     permissions: "0644"
     content: |
       global:
@@ -98,8 +97,12 @@ runcmd:
   # Download and install cassandra_exporter dashboard
   - wget -O /var/lib/grafana/dashboards/cassandra_exporter.json https://github.com/criteo/cassandra_exporter/raw/refs/heads/master/grafana/cassandra_default.json
 
+  # Update prometheus ownership
+  - chown -R prometheus:prometheus /etc/prometheus
+
   # Start and enable Prometheus
   - systemctl enable --now prometheus
+  - sytemctl restart prometheus
 
   # Start and enable Grafana
   - systemctl enable --now grafana-server

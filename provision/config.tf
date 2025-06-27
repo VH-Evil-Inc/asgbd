@@ -66,3 +66,9 @@ variable "cassandra_size" {
     error_message = "The value must be an integer between 0 and 9."
   }
 }
+
+variable "enable_grafana" {
+  type = bool
+  default = false
+  description = "Enable Grafana"
+}

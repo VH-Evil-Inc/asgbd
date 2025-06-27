@@ -43,6 +43,8 @@ write_files:
       WantedBy=default.target
 
 runcmd:
+  - curl -sSL https://repos.insights.digitalocean.com/install.sh | sudo bash
+
   # Add Citus repository and install PostgreSQL + Citus
   - curl https://install.citusdata.com/community/deb.sh | sudo bash || exit 0
   # Work around missing support for citus in noble

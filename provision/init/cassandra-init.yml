@@ -11,6 +11,14 @@ packages:
   - python2
 
 write_files:
+  # Auto-restart cassandra
+  - path: /etc/systemd/system/cassandra.service.d/override.conf
+    owner: root:root
+    permissions: "0644"
+    content: |
+      [Service]
+      Restart=on-failure
+      RestartSec=5
   # Node Exporter Service
   - path: /etc/systemd/system/node_exporter.service
     owner: root:root
@@ -100,6 +108,8 @@ write_files:
           - .*:totaldiskspaceused:.*
 
 runcmd:
+  - curl -sSL https://repos.insights.digitalocean.com/install.sh | sudo bash
+
   # Add Cassandra repository and install Cassandra
   - curl -o /etc/apt/keyrings/apache-cassandra.asc https://downloads.apache.org/cassandra/KEYS
   - echo "deb [signed-by=/etc/apt/keyrings/apache-cassandra.asc] https://debian.cassandra.apache.org 41x main" | sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list
@@ -126,6 +136,7 @@ runcmd:
     sed -i 's/seeds: .*/seeds: "cassandra-01.private.do-usp.lelis.gay"/' /etc/cassandra/cassandra.yaml
 
   # Start Cassandra
+  - systemctl daemon-reload
   - systemctl enable --now cassandra
 
   # Install and run node_exporter
