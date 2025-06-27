@@ -1,3 +1,12 @@
 \section{Conclusão}
 
-\section{Trabalho Futuro}
+Os experimentos realizados mostraram que a configuração de cluster com três nós sem replicação apresentou o melhor desempenho em termos de latência para
+todas as operações avaliadas (inserção, leitura e atualização), evidenciando a eficiência do balanceamento de carga em ambientes distribuídos. 
+A ativação da replicação, embora tenha aumentado significativamente as latências médias, é fundamental para aplicações que demandam alta disponibilidade 
+e tolerância a falhas, características essenciais em muitos cenários de produção.
+O nó único, por sua vez, apresentou desempenho inferior em relação às demais configurações,
+reforçando as vantagens da distribuição de dados e do paralelismo proporcionados pelo Cassandra em ambientes distribuídos.
+
+\section{Trabalhos Futuros}
+
+Como trabalhos futuros, sugere-se a realização de experimentos com outras configurações de replicação e o teste de outros sistemas gerenciadores de base de dados distribuidos.

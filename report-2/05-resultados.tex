@@ -3,52 +3,65 @@
 Para comparar o desempenho das arquiteturas propostas, realizamos o benchmark YCSB com as configurações do Cassandra descritas na Seção \ref{sec:arquitetura}.
 Os resultados estão descritos a seguir, com foco em throughput, latência e overheads de cada configuração.
 
-\subsection{Único Nó}
 
-
-	\begin{table}[H]
-	\centering
-	\caption{Resultados do benchmark YCSB}
-	\begin{tabular}{lcccccc}
-	\hline
-	Operação & Operações & Latência Média (\textmu s) & Latência Mín (\textmu s) & Latência Máx (\textmu s) \\
-	\hline
-	INSERT   & 10\,000\,000 & 1\,222,82 & 197   & 148\,607 \\
-	READ     & 5\,000\,753  & 2\,296,55 & 220   & 135\,295 \\
-	UPDATE   & 4\,999\,247  & 1\,681,11 & 159   & 149\,759 \\
-	\hline
-	\end{tabular}
-	\end{table}
-
-\subsection{Três Nós, Sem Replicação}
-
+\subsection{Resultados do Benchmark YCSB}
 
 	\begin{table}[H]
-	\centering
-	\caption{Resultados agregados do benchmark YCSB (Workload A)}
-	\begin{tabular}{lrrrrrr}
-	\hline
-	Operação & Operações & Latência Média (\textmu s) & Latência Mín (\textmu s) & Latência Máx (\textmu s) \\
-	\hline
-	INSERT   & 10\,000\,000 & 703,01 & 159 & 139\,135 \\
-	READ     & 4\,998\,961  & 759,82 & 210 & 97\,151  \\
-	UPDATE   & 5\,001\,039  & 656,09 & 160 & 95\,935  \\
-	\hline
-	\end{tabular}
-	\end{table}
+    \centering
+    \caption{Resultados do benchmark YCSB - Único nó}
+    \begin{tabular}{lcccccc}
+    \hline
+    Operação & Operações & Latência Média (\textmu s) & Latência Mín (\textmu s) & Latência Máx (\textmu s) \\
+    \hline
+    INSERT   & 10\,000\,000 & 1\,222,82 & 197   & 148\,607 \\
+    READ     & 5\,000\,753  & 2\,296,55 & 220   & 135\,295 \\
+    UPDATE   & 4\,999\,247  & 1\,681,11 & 159   & 149\,759 \\
+    \hline
+    \end{tabular}
+    \end{table}
 
-\subsection{Três Nós, Com Replicação}
+    \begin{table}[H]
+    \centering
+    \caption{Resultados agregados do benchmark YCSB - 3 nós sem replicação}
+    \begin{tabular}{lrrrrrr}
+    \hline
+    Operação & Operações & Latência Média (\textmu s) & Latência Mín (\textmu s) & Latência Máx (\textmu s) \\
+    \hline
+    INSERT   & 10\,000\,000 & 703,01 & 159 & 139\,135 \\
+    READ     & 4\,998\,961  & 759,82 & 210 & 97\,151  \\
+    UPDATE   & 5\,001\,039  & 656,09 & 160 & 95\,935  \\
+    \hline
+    \end{tabular}
+    \end{table}
 
-	\begin{table}[H]
-	\centering
-	\caption{Resultados agregados do benchmark YCSB}
-	\begin{tabular}{lrrrrrr}
-	\hline
-	Operação & Operações & Latência Média (\textmu s) & Latência Mín (\textmu s) & Latência Máx (\textmu s) \\
-	\hline
-	INSERT   & 10\,000\,000 & 1\,514,36 & 186 & 149\,119  \\
-	READ     & 5\,000\,119  & 2\,334,83 & 268 & 125\,119  \\
-	UPDATE   & 4\,999\,881  & 1\,170,27 & 182 & 114\,431  \\
-	\hline
-	\end{tabular}
-	\end{table}
+    \begin{table}[H]
+    \centering
+    \caption{Resultados agregados do benchmark YCSB - 3 nós com replicação} 
+    \begin{tabular}{lrrrrrr}
+    \hline
+    Operação & Operações & Latência Média (\textmu s) & Latência Mín (\textmu s) & Latência Máx (\textmu s) \\
+    \hline
+    INSERT   & 10\,000\,000 & 1\,514,36 & 186 & 149\,119  \\
+    READ     & 5\,000\,119  & 2\,334,83 & 268 & 125\,119  \\
+    UPDATE   & 4\,999\,881  & 1\,170,27 & 182 & 114\,431  \\
+    \hline
+    \end{tabular}
+    \end{table}
+
+\subsection{Análise Comparativa dos Resultados}
+
+A análise dos resultados obtidos evidencia diferenças significativas no desempenho das configurações avaliadas.
+O cluster com três nós sem replicação apresentou as menores latências médias para todas as operações (INSERT, READ e UPDATE),
+demonstrando maior eficiência na distribuição da carga e no processamento das requisições.
+
+A configuração com replicação replicação no cluster de três nós resultou em um aumento considerável nas médias das latências,
+especialmente nas operações de escrita e leitura. 
+Esse aumento pode ser atribuído ao overhead inerente ao mecanismo de replicação, que demanda sincronização adicional entre os nós do cluster.
+
+Comparando-se o desempenho do nó único com as demais configurações,
+observa-se que o nó único apresentou as maiores latências médias em todas as operações, 
+com exceção da operação UPDATE em relção ao cluster com replicação, cuja latência média (1,170,27~$\mu$s) foi inferior à do nó único (1,681,11~$\mu$s).
+
+De modo geral, obsevamos o overhead causado pela replicação é significativo,
+mas é um custo necessário em aplicações que exijam maior disponibilidade e tolerância a falhas.
+Para ambientes em que a latência é o principal critério de desempenho, a configuração de cluster sem replicação se mostra mais adequada.
