@@ -6,20 +6,20 @@ A distribuição dos dados entre várias máquinas possibilita melhorar a escala
 
 No contexto da distribuição dos dados em bancos de dados distribuídos, tanto as tuplas quanto os atributos que as compõem podem ser fragmentados entre os nós do sistema, e cópias desses dados podem ser replicadas em mais de um nó.
 
-\subsubsection{Fragmentação Horizontal}
-A fragmentação horizontal consiste na distribuição das tuplas inteiras de uma tabela entre diferentes máquinas do sistema. Essa fragmentação é realizada de modo que cada fragmento contenha um subconjunto das tuplas da tabela original, mantendo todas as colunas.
+%\subsubsection{Fragmentação Horizontal}
+%A fragmentação horizontal consiste na distribuição das tuplas inteiras de uma tabela entre diferentes máquinas do sistema. Essa fragmentação é realizada de modo que cada fragmento contenha um subconjunto das tuplas da tabela original, mantendo todas as colunas.
 
-\subsubsection{Fragmentação Vertical}
-A fragmentação vertical consiste na distribuição dos atributos de uma tabela entre diferentes máquinas do sistema, mantendo em comum a chave primária da tabela original. Dessa forma, cada fragmento armazena um subconjunto dos atributos para cada tupla da tabela original.
+%\subsubsection{Fragmentação Vertical}
+%A fragmentação vertical consiste na distribuição dos atributos de uma tabela entre diferentes máquinas do sistema, mantendo em comum a chave primária da tabela original. Dessa forma, cada fragmento armazena um subconjunto dos atributos para cada tupla da tabela original.
 
-\subsubsection{Fragmentação Mista}
-A fragmentação mista combina as estratégias de fragmentação horizontal e vertical. Nesse caso, cada fragmento armazena um subconjunto dos atributos de uma tabela para um subconjunto das tuplas.
+%\subsubsection{Fragmentação Mista}
+%A fragmentação mista combina as estratégias de fragmentação horizontal e vertical. Nesse caso, cada fragmento armazena um subconjunto dos atributos de uma tabela para um subconjunto das tuplas.
 
 \subsubsection{Replicação}
 No que diz respeito à redundância dos dados entre os nós do sistema, a replicação consiste na cópia de um fragmento de dados em mais de um nó. Essa cópia pode ser feita de forma parcial ou completa, e uma maior redundância dos dados implica em maior disponibilidade e tolerância a falhas do sistema, mas aumenta os custos de armazenamento e sincronização.
 
-\subsubsection{Homogeneidade e Heterogeneidade}
-Os bancos de dados distribuídos também podem ser compostos por nós de mesma natureza, no que diz respeito ao SGBD utilizado, modelos de dados, protocolos de comunicação, fragmentação e replicação dos dados.
+%\subsubsection{Homogeneidade e Heterogeneidade}
+%Os bancos de dados distribuídos também podem ser compostos por nós de mesma natureza, no que diz respeito ao SGBD utilizado, modelos de dados, protocolos de comunicação, fragmentação e replicação dos dados.
 
 Um sistema cujos nós seguem a mesma arquitetura geral é classificado como homogêneo, e apresenta maior desempenho geral, simplicidade de implementação e escalabilidade.
 
@@ -28,11 +28,11 @@ Por outro lado, um sistema heterogêneo é composto por nós de diferentes arqui
 \subsubsection{Alocação de Dados}
 A alocação de dados em um banco de dados distribuído é o processo pelo qual se decide onde os dados serão armazenados, levando em consideração a configuração dos nós do sistema e as métricas de desempenho desejadas. O processo de alocação de dados pode ser feito de forma centralizada ou descentralizada.
 
-\subsubsection{Consulta em Banco de Dados Distribuído}
-Devido à variedade de configurações e aos fragmentos de dados contidos nos nós do sistema, o processo de consulta se torna mais complexo em um banco de dados distribuído.
+%\subsubsection{Consulta em Banco de Dados Distribuído}
+%Devido à variedade de configurações e aos fragmentos de dados contidos nos nós do sistema, o processo de consulta se torna mais complexo em um banco de dados distribuído.
 
-\subsubsection{Plano de Consulta}
-O plano de consulta em bancos de dados distribuídos é a sequência de operações que define como uma consulta será executada sobre os dados fragmentados e possivelmente replicados entre diferentes nós. O otimizador do SGBD distribui as operações entre os nós, buscando minimizar o custo de comunicação e o tempo de resposta. O plano pode envolver o envio de subconsultas para diferentes nós, a coleta e combinação dos resultados parciais, e a aplicação de operações finais no nó coordenador. A eficiência do plano de consulta é fundamental para o desempenho do sistema distribuído.
+%\subsubsection{Plano de Consulta}
+%O plano de consulta em bancos de dados distribuídos é a sequência de operações que define como uma consulta será executada sobre os dados fragmentados e possivelmente replicados entre diferentes nós. O otimizador do SGBD distribui as operações entre os nós, buscando minimizar o custo de comunicação e o tempo de resposta. O plano pode envolver o envio de subconsultas para diferentes nós, a coleta e combinação dos resultados parciais, e a aplicação de operações finais no nó coordenador. A eficiência do plano de consulta é fundamental para o desempenho do sistema distribuído.
 
 \subsubsection{Transações}
 Transações em bases de dados distribuídas envolvem múltiplos nós ou locais onde os dados estão armazenados, mas precisam ser executadas de forma coordenada para garantir as propriedades de Atomicidade, Consistência, Isolamento e Durabilidade (ACID). Mesmo que uma transação envolva atualizações em diferentes servidores, ela deve ser concluída integralmente em todos eles ou ser completamente desfeita em caso de falha, mantendo o sistema em um estado consistente.

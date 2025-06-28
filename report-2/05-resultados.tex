@@ -1,11 +1,10 @@
 \section{Experimentos e Resultados}
 
-Para comparar o desempenho das arquiteturas propostas, realizamos o benchmark YCSB com as configurações do Cassandra descritas na Seção \ref{sec:arquitetura}.
+Para comparar o desempenho das arquiteturas propostas, realizamos o benchmark YCSB com as configurações do Cassandra descritas na Seção de Sistema Proposto.
 Os resultados estão descritos a seguir, com foco em throughput, latência e overheads de cada configuração.
 
 
 \subsection{Resultados do Benchmark YCSB}
-
 	\begin{table}[H]
     \centering
     \caption{Resultados do benchmark YCSB - Único nó}
@@ -62,6 +61,60 @@ Comparando-se o desempenho do nó único com as demais configurações,
 observa-se que o nó único apresentou as maiores latências médias em todas as operações, 
 com exceção da operação UPDATE em relção ao cluster com replicação, cuja latência média (1,170,27~$\mu$s) foi inferior à do nó único (1,681,11~$\mu$s).
 
-De modo geral, obsevamos o overhead causado pela replicação é significativo,
+De modo geral, obsevamos que o overhead causado pela replicação é significativo,
 mas é um custo necessário em aplicações que exijam maior disponibilidade e tolerância a falhas.
 Para ambientes em que a latência é o principal critério de desempenho, a configuração de cluster sem replicação se mostra mais adequada.
+
+\subsubsection{Análise dos Recursos Utilizados no Cluster}
+Além das métricas de latência e throughput, decidimos comparar o uso de recursos do cluster durante a execução do benchmark YCSB.
+Abaixo estão os gráficos que mostram o uso de CPU, memória e rede durante a execução do benchmark, para a configuração sem e com replicação dos dados.
+
+\begin{figure}[H]
+	\captionsetup{labelformat=empty}
+  	\caption{Sem Replicação}
+	\centering
+  \begin{minipage}{0.32\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{imgs/3-1-01.png}
+    \caption{Nó 1}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.32\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{imgs/3-1-02.png}
+    \caption{Nó 2}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.32\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{imgs/3-1-03.png}
+    \caption{Nó 3}
+  \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+	\captionsetup{labelformat=empty}
+	\caption{Com Replicação}
+  \centering
+  \begin{minipage}{0.32\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{imgs/3-3-01.png}
+    \caption{Nó 1}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.32\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{imgs/3-3-02.png}
+    \caption{Nó 2}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.32\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{imgs/3-3-03.png}
+    \caption{Nó 3}
+  \end{minipage}
+\end{figure}
+
+Comparando o gráfico do uso de recursos do cluster sem replicação com o do cluster com replicação, observamos que para as arquiteturas utilizadas,
+com excessão do uso de memória semelhante, todas métricas apresentam um aumento significativo no uso de recursos quando a replicação é ativada.
+As métricas de leitura e escrita de disco e de uso de rede são as que mais se destacam, sendo que os clusters com replicação superaram em mais do dobro do uso desses recursos pelos cluster sem replicação.
