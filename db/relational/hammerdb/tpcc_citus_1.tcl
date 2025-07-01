@@ -26,6 +26,7 @@ diset tpcc pg_vacuum false         ;# Disable during test for stability
 
 # Configure jobs database for result storage
 giset commandline keepalive_margin 300  ;# Extend completion wait to 5 mins
+jobs
 jobs format text                        ;# Human-readable output
 
 # Load the TPC-C benchmark script
