@@ -130,6 +130,8 @@ runcmd:
 
   # Clone benchmark repository
   - git clone https://github.com/VH-Evil-Inc/asgbd.git /home/bench/asgbd
+  - find . -type f -name "/home/bench/asgbd/db/relational/hammerdb/*.tcl" -exec sed -i 's/127\.0\.0\.1/postgres-01.private.do-usp.lelis.gay/g' {} +
+  - chown -R bench:bench /home/bench/asgbd
 
   # Install NoSQLBench
   - curl -L https://github.com/nosqlbench/nosqlbench/releases/download/5.21.7-release/nb5 -o /home/bench/nb5

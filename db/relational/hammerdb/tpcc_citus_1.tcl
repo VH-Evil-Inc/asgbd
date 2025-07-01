@@ -15,11 +15,11 @@ diset tpcc pg_dbase postgres
 diset tpcc pg_cituscompat true
 
 # Set TPC-C specific parameters
-diset tpcc pg_count_ware 40        ;# Number of warehouses
-diset tpcc pg_num_vu 32            ;# Virtual users
+diset tpcc pg_count_ware 100        ;# Number of warehouses
+diset tpcc pg_num_vu 64            ;# Virtual users
 diset tpcc pg_driver timed         ;# Timed driver
 diset tpcc pg_rampup 2             ;# 2-minute rampup
-diset tpcc pg_duration 5           ;# 5-minute test
+diset tpcc pg_duration 10           ;# 5-minute test
 diset tpcc pg_allwarehouse true
 diset tpcc pg_timeprofile true     ;# Enabled to collect latency data
 diset tpcc pg_vacuum false         ;# Disable during test for stability
