@@ -55,8 +55,93 @@ Este trabalho não visa fazer uma comparação direta entre a performance indivi
 
 # Citus (quantos slides desejarmos nesse mundo pra falar de tudo)
 
-- Uau citus.
-- Descrever o citus
+Citus é uma extensão do PostgreSQL para bancos de dados distribuídos. O Citus apresenta suporte à fragmentação horizontal, fragmentação por esquema e replicação de dados. 
+
+---
+
+<center>
+
+# Modelos de fragmentação
+
+</center>
+
+<div class="columns">
+<div>
+
+## Fragmentação Horizontal
+
+Um único esquema é utilizado entre todos os nós, tendo a fragmentação feita por tuplas que tem seu nó de residência determinado por uma coluna de distribuição.
+
+</div>
+
+<div>
+
+## Fragmentação por Esquema
+
+Permite diferentes nós usarem diferentes esquemas, ainda permite tabelas compartilhadas e outras funcionalidades do Citus em esquemas não fragmentados.
+
+</div>
+</div>
+
+---
+
+<div class="columns">
+<div>
+
+
+![h:400 drop-shadow:4px,5px,15px,#010101](./assets/citus-architecture.png)
+
+<figcaption align="center">
+<b>Figura</b>: Arquitetura coordinator-worker do Citus. Obtido em: https://github.com/citusdata/citus#Architecture
+</figcaption>
+
+
+</div>
+<div> 
+
+- Dois tipos de nós: worker e coordinator
+
+- Worker armazenam os dados das tabelas distribuidas e processam as consultas
+- Cada coordinator node gerencia um cluster de worker nodes 
+    - Faz o intermédio das consultas da aplicação entre um ou múltiplos nós, acumulando e retornando os resultados para a aplicação
+    - Também também mantém a alocação, o controle da consistência dos dados e da integridade dos nós trabalhadores.
+</div>
+<div>
+
+---
+
+<center>
+
+# Tipos de Tabelas
+
+</center>
+
+<div class="columns3">
+<div>
+
+### Tabelas distribuídas
+
+Tabelas com os dados particionados e distribuídos entre vários nós trabalhadores, permitindo consultas e operações paralelas.
+
+</div>
+
+<div>
+
+### Tabelas de referência
+
+São tabelas replicadas em todos os nós trabalhadores, utilizadas para armazenar dados pequenos e frequentemente acessados.
+
+</div>
+
+<div>
+
+### Tabelas locais
+
+São tabelas que existem apenas no nó coordenador e não são distribuídas nem replicadas. 
+
+</div>
+
+</div>
 
 ---
 
@@ -78,6 +163,24 @@ Este trabalho não visa fazer uma comparação direta entre a performance indivi
 <center> TCP-C ! :) </center>
 </div>
 <div>
+
+---
+
+# Estratégia de Distribuição
+
+```sql
+-- Distribution Configuration
+SELECT create_reference_table('warehouse');
+SELECT create_reference_table('district');
+SELECT create_reference_table('item');
+
+SELECT create_distributed_table('customer', 'c_w_id', colocate_with => 'none');
+SELECT create_distributed_table('stock', 's_w_id', colocate_with => 'customer');
+SELECT create_distributed_table('orders', 'o_w_id', colocate_with => 'customer');
+SELECT create_distributed_table('new_order', 'no_w_id', colocate_with => 'customer');
+SELECT create_distributed_table('order_line', 'ol_w_id', colocate_with => 'customer');
+SELECT create_distributed_table('history', 'h_w_id', colocate_with => 'customer');
+```
 
 ---
 
