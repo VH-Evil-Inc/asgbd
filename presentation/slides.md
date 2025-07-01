@@ -53,7 +53,7 @@ Este trabalho não visa fazer uma comparação direta entre a performance indivi
 
 ---
 
-# Citus (quantos slides desejarmos nesse mundo pra falar de tudo)
+# Citus
 
 Citus é uma extensão do PostgreSQL para bancos de dados distribuídos. O Citus apresenta suporte à fragmentação horizontal, fragmentação por esquema e replicação de dados. 
 
@@ -204,11 +204,51 @@ SELECT create_distributed_table('history', 'h_w_id', colocate_with => 'customer'
 
 ---
 
-# Cassandra ! (quantos slides desejarmos nesse mundo pra falar de tudo)
+# Cassandra 
+
+Apache Cassandra é um banco de dados _open-source_ NoSQL distribuído, sendo classificado como um _Wide-Column Database_.
 
 ---
 
-# Yahoo (YCSB)
+# Cassandra
+
+Cassandra utiliza uma arquitetura _masterless_ com _clusters_ organizados em forma de anel, todos os nós do Cassandra podem responder a aplicação e comunicar com todos os outros nós dentro de um anel.
+
+<center>
+
+![h:400 drop-shadow:4px,5px,15px,#010101](./assets/apache-cassandra-diagrams-01.jpg)
+
+</center>
+
+---
+
+# Estrutura de Dados e Particionamento
+
+Os dados no cassandra são organizados em keyspaces que agrupam tabelas relacionadas. Cada tabela é composta por linhas e colunas 
+
+Cada linha é identificada por uma chave primária composta por um partition key e, opcionalmente, colunas de ordenação (clustering columns)
+
+A distribuição dos dados é feita de forma que cada nó do cluster seja responsável por um intervalo do espaço de tokens. 
+
+---
+
+# Replicação e Tolerância a Falhas
+
+Cassandra implementa replicação configurável por _keyspace_, permitindo definir o fator de replicação e a estratégia de replicação mais adequada ao ambiente. 
+
+---
+
+# Consistência
+
+O Cassandra possui _tunable consistency_, permitindo o usuário definir por operação quantos nós precisam confirmar uma leitura ou escrita para que ela seja bem-sucedida.
+
+Isso permite ajustar entre priorizar consistência forte ou disponibilidade, conforme a necessidade da aplicação. 
+
+Por padrão o Cassandra opera como um sistema _AP_ (alta disponibilidade e tolerância a partições), mas pode ser configurado para comportar-se como _CP_(consistência e tolerância a partições) em cenários específicos.
+
+---
+
+# Yahoo! Cloud Serving Benchmarking (YCSB)
 
 ---
 
