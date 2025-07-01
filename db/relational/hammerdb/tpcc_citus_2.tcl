@@ -1,14 +1,14 @@
 # Set database and benchmark type
 dbset db pg               ;# Select PostgreSQL as the database
-dbset bm TPROC-C            ;# Select TPC-C benchmark
 
 # Set connection parameters for PostgreSQL
 diset connection pg_host 127.0.0.1
 diset connection pg_port 5432
+
+dbset bm TPROC-C            ;# Select TPC-C benchmark
+
 diset tpcc pg_superuser postgres
-diset tpcc pg_superuserpass password
 diset tpcc pg_user postgres
-diset tpcc pg_pass password
 diset tpcc pg_dbase postgres
 
 # Enable Citus compatibility
