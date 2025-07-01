@@ -72,3 +72,13 @@ variable "enable_grafana" {
   default = false
   description = "Enable Grafana"
 }
+
+variable "postgres_replication_factor" {
+  type = number
+  default = 1
+  description = "The replication factor for the Postgres cluster"
+  validation {
+    condition     = var.postgres_replication_factor >= 1 && var.postgres_replication_factor <= 9
+    error_message = "The replication factor must be an integer between 1 and 9."
+  }
+}

@@ -124,7 +124,7 @@ runcmd:
   - echo "citus.executor_slow_start_interval = '10ms'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
   - echo "citus.coordinator_aggregation_strategy = 'disabled'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
   - echo "citus.enable_repartition_joins = on" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
-  - echo "citus.shard_replication_factor = 1" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # Optional: reduce overhead
+  - echo "citus.shard_replication_factor = ${replication_factor}" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # Optional: reduce overhead
   # Logging and Performance Debugging
   - echo "log_min_duration_statement = 1000" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
   - echo "log_checkpoints = on" | sudo tee -a /etc/postgresql/17/main/postgresql.conf

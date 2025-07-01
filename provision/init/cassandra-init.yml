@@ -141,48 +141,72 @@ write_files:
       vm.swappiness = 1
 
 runcmd:
-  # Apply sysctl settings
+  # Wait for networking
+  - |
+    until ip route get 172.16.12.0 &> /dev/null; do
+      echo "Waiting for network route..."
+      sleep 2
+    done
+
+  # Random startup delay (20–50 seconds)
+  - |
+    delay=$((RANDOM % 30 + 20))
+    echo "Sleeping $delay seconds to reduce boot storm..."
+    sleep $delay
+
+  # Apply sysctl
   - sysctl --system
 
-  # Increase file descriptor and memory lock limits
+  # Increase resource limits
   - echo "* soft nofile 1048576" | tee -a /etc/security/limits.conf
   - echo "* hard nofile 1048576" | tee -a /etc/security/limits.conf
   - echo "* soft memlock unlimited" | tee -a /etc/security/limits.conf
   - echo "* hard memlock unlimited" | tee -a /etc/security/limits.conf
 
-  # Digital Ocean Monitoring Agent
+  # DO Monitoring Agent
   - curl -sSL https://repos.insights.digitalocean.com/install.sh | sudo bash
 
-  # Add Cassandra repository and install Cassandra
+  # Install Cassandra
   - curl -o /etc/apt/keyrings/apache-cassandra.asc https://downloads.apache.org/cassandra/KEYS
-  - echo "deb [signed-by=/etc/apt/keyrings/apache-cassandra.asc] https://debian.cassandra.apache.org 41x main" | sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list
+  - echo "deb [signed-by=/etc/apt/keyrings/apache-cassandra.asc] https://debian.cassandra.apache.org 41x main" | tee /etc/apt/sources.list.d/cassandra.sources.list
   - apt-get update
   - DEBIAN_FRONTEND=noninteractive apt-get install -yq cassandra
+  - systemctl disable cassandra # Prevent early boot
 
-  # Configure Cassandra to listen on the private IP (adjust if you want to use hostname here instead)
+  # Configure Cassandra
   - |
-    sed -i "s/^listen_address: localhost/listen_address: $(ip route get 172.16.12.0 | awk '{print $(NF-2); exit}')/" /etc/cassandra/cassandra.yaml
-  - |
+    ip=$(ip route get 172.16.12.0 | awk '{print $(NF-2); exit}')
+    sed -i "s/^listen_address: localhost/listen_address: ${ip}/" /etc/cassandra/cassandra.yaml
     sed -i "s/^rpc_address: localhost/rpc_address: 0.0.0.0/" /etc/cassandra/cassandra.yaml
-  - |
     sed -i "s/^endpoint_snitch: SimpleSnitch/endpoint_snitch: GossipingPropertyFileSnitch/" /etc/cassandra/cassandra.yaml
-  - |
-    sed -i "s/^# broadcast_address:.*/broadcast_address: $(ip route get 172.16.12.0 | awk '{print $(NF-2); exit}')/" /etc/cassandra/cassandra.yaml
-  - |
-    sed -i "s/^# broadcast_rpc_address:.*/broadcast_rpc_address: $(ip route get 172.16.12.0 | awk '{print $(NF-2); exit}')/" /etc/cassandra/cassandra.yaml
-
-  # # Set the seeds to all three DNS records
-  # - |
-  #   sed -i "s/^seeds: .*/seeds: \"cassandra-01.private.do-usp.lelis.gay,cassandra-02.private.do-usp.lelis.gay,cassandra-03.private.do-usp.lelis.gay\"/" /etc/cassandra/cassandra.yaml
-  # Set the seeds to only the first node
-  - |
+    sed -i "s/^# broadcast_address:.*/broadcast_address: ${ip}/" /etc/cassandra/cassandra.yaml
+    sed -i "s/^# broadcast_rpc_address:.*/broadcast_rpc_address: ${ip}/" /etc/cassandra/cassandra.yaml
     sed -i 's/seeds: .*/seeds: "cassandra-01.private.do-usp.lelis.gay"/' /etc/cassandra/cassandra.yaml
 
-  # Start Cassandra
-  - systemctl daemon-reload
-  - systemctl enable --now cassandra
+  # Wait for seed unless we're the seed
+  - |
+    if ! hostname | grep -q cassandra-01; then
+      echo "Waiting for seed node cassandra-01 to become reachable..."
+      while ! nc -z cassandra-01.private.do-usp.lelis.gay 7000; do
+        echo "Seed not reachable yet on port 7000..."
+        sleep 5
+      done
+    else
+      echo "This is the seed node, skipping wait."
+    fi
 
-  # Install and run node_exporter
+  # Start Cassandra safely
+  - systemctl daemon-reload
+  - systemctl enable cassandra
+  - |
+    echo "Starting Cassandra..."
+    systemctl start cassandra || {
+      echo "Cassandra start failed, retrying in 10s..."
+      sleep 10
+      systemctl restart cassandra
+    }
+
+  # Node exporter
   - wget https://github.com/prometheus/node_exporter/releases/download/v1.9.1/node_exporter-1.9.1.linux-amd64.tar.gz
   - tar xvfz node_exporter-*.linux-amd64.tar.gz
   - mv node_exporter-*/node_exporter /usr/local/bin/
@@ -191,7 +215,7 @@ runcmd:
   - systemctl daemon-reload
   - systemctl enable --now node_exporter
 
-  # Install and run cassandra_exporter (as a Java .jar)
+  # Cassandra exporter
   - useradd --no-create-home --shell /bin/false cassandra_exporter
   - mkdir -p /usr/local/lib/cassandra_exporter
   - wget -O /usr/local/lib/cassandra_exporter/cassandra_exporter.jar https://github.com/criteo/cassandra_exporter/releases/download/2.3.8/cassandra_exporter-2.3.8.jar

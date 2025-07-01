@@ -110,7 +110,7 @@ resource "digitalocean_droplet" "postgres" {
   vpc_uuid = digitalocean_vpc.asgbd.id
   ssh_keys = [digitalocean_ssh_key.asgbd.id]
   tags = [digitalocean_tag.asgbd.id]
-  user_data = count.index == 0 ? file("./init/citus-master-init.yml") : file("./init/citus-worker-init.yml")
+  user_data = count.index == 0 ? templatefile("./init/citus-master-init.yml.tftpl", {replication_factor = var.postgres_replication_factor}) : templatefile("./init/citus-worker-init.yml.tftpl", {replication_factor = var.postgres_replication_factor})
 }
 
 resource "digitalocean_record" "postgres" {
