@@ -41,8 +41,50 @@ write_files:
       Restart=on-failure
       [Install]
       WantedBy=default.target
+  - path: /etc/sysctl.d/99-optim.conf
+    content: |
+      # Increase maximum TCP buffer sizes
+      net.core.rmem_max = 134217728
+      net.core.wmem_max = 134217728
+      net.ipv4.tcp_rmem = 4096 87380 134217728
+      net.ipv4.tcp_wmem = 4096 65536 134217728
+
+      # Enable TCP window scaling
+      net.ipv4.tcp_window_scaling = 1
+
+      # Reduce TCP connection latency
+      net.ipv4.tcp_timestamps = 0
+      net.ipv4.tcp_sack = 1
+      net.ipv4.tcp_no_metrics_save = 1
+      net.ipv4.tcp_mtu_probing = 1
+
+      # Increase max socket backlog
+      net.core.somaxconn = 4096
+
+      # Allow more open files and connections
+      fs.file-max = 2097152
+
+      # Enable memory overcommit (Postgres benefits from it)
+      vm.overcommit_memory = 2
+      vm.overcommit_ratio = 95
+
+      # Enable huge pages support
+      vm.nr_hugepages = 128
+
+      # Reduce swappiness
+      vm.swappiness = 1
 
 runcmd:
+  # Apply sysctl settings
+  - sysctl --system
+
+  # Increase file descriptor and memory lock limits
+  - echo "* soft nofile 1048576" | tee -a /etc/security/limits.conf
+  - echo "* hard nofile 1048576" | tee -a /etc/security/limits.conf
+  - echo "* soft memlock unlimited" | tee -a /etc/security/limits.conf
+  - echo "* hard memlock unlimited" | tee -a /etc/security/limits.conf
+
+  # Digital Ocean Monitoring Agent
   - curl -sSL https://repos.insights.digitalocean.com/install.sh | sudo bash
 
   # Add Citus repository and install PostgreSQL + Citus
@@ -56,17 +98,40 @@ runcmd:
   # Listen on all interfaces
   - echo "listen_addresses = '*'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
   # Configuration Tuning
-  - echo "shared_buffers = '2GB'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
-  - echo "work_mem = '128MB'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
-  - echo "maintenance_work_mem = '1GB'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
-  - echo "max_parallel_workers_per_gather = 4" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
-  - echo "max_worker_processes = 20" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
-  - echo "max_connections = 1000" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
-  - echo "synchronous_commit = off" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  # Memory Settings
+  - echo "shared_buffers = '2GB'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # 25% of RAM
+  - echo "work_mem = '64MB'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # Balanced for concurrency
+  - echo "maintenance_work_mem = '1GB'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # VACUUM, CREATE INDEX, etc.
+  - echo "effective_cache_size = '6GB'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # Planner cache assumption
+  # Parallelism
+  - echo "max_worker_processes = 8" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # Total worker processes
+  - echo "max_parallel_workers = 4" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # Max parallel workers globally
+  - echo "max_parallel_workers_per_gather = 2" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # Per-query limit
+  # Connection Handling
+  - echo "max_connections = 200" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # Use PgBouncer if more needed
+  # Disk and WAL Settings (for SSDs)
+  - echo "wal_compression = on" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # Reduce WAL volume
+  - echo "wal_writer_delay = 200ms" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # Less frequent WAL fsync
+  - echo "checkpoint_completion_target = 0.9" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # Spread I/O
+  - echo "checkpoint_timeout = 15min" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # Less frequent checkpoints
+  - echo "max_wal_size = 2GB" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # Larger WAL before checkpoint
+  - echo "min_wal_size = 1GB" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # Min WAL size before cleanup
+  - echo "random_page_cost = 1.1" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # Lower for SSD
+  # Durability
+  - echo "synchronous_commit = off" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # Better throughput, possible loss
+  # Citus-specific Tuning
   - echo "citus.max_adaptive_executor_pool_size = 100" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
   - echo "citus.executor_slow_start_interval = '10ms'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
   - echo "citus.coordinator_aggregation_strategy = 'disabled'" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
   - echo "citus.enable_repartition_joins = on" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  - echo "citus.shard_replication_factor = 1" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # Optional: reduce overhead
+  # Logging and Performance Debugging
+  - echo "log_min_duration_statement = 1000" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  - echo "log_checkpoints = on" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  - echo "log_lock_waits = on" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  - echo "deadlock_timeout = 1s" | sudo tee -a /etc/postgresql/17/main/postgresql.conf
+  # Extra Tuning
+  - echo "huge_pages = try" | sudo tee -a /etc/postgresql/17/main/postgresql.conf # Use huge pages if supported
   # Allow local and private network access (adjust as needed for your network)
   - echo "host all all 172.16.12.0/24 trust" | sudo tee -a /etc/postgresql/17/main/pg_hba.conf
   - echo "host all all 127.0.0.1/32 trust" | sudo tee -a /etc/postgresql/17/main/pg_hba.conf

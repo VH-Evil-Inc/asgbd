@@ -118,7 +118,50 @@ write_files:
     permissions: "0755"
     defer: true
 
+  - path: /etc/sysctl.d/99-optim.conf
+    content: |
+      # Increase maximum TCP buffer sizes
+      net.core.rmem_max = 134217728
+      net.core.wmem_max = 134217728
+      net.ipv4.tcp_rmem = 4096 87380 134217728
+      net.ipv4.tcp_wmem = 4096 65536 134217728
+
+      # Enable TCP window scaling
+      net.ipv4.tcp_window_scaling = 1
+
+      # Reduce TCP connection latency
+      net.ipv4.tcp_timestamps = 0
+      net.ipv4.tcp_sack = 1
+      net.ipv4.tcp_no_metrics_save = 1
+      net.ipv4.tcp_mtu_probing = 1
+
+      # Increase max socket backlog
+      net.core.somaxconn = 4096
+
+      # Allow more open files and connections
+      fs.file-max = 2097152
+
+      # Enable memory overcommit
+      vm.overcommit_memory = 2
+      vm.overcommit_ratio = 95
+
+      # Enable huge pages support
+      vm.nr_hugepages = 128
+
+      # Reduce swappiness
+      vm.swappiness = 1
+
 runcmd:
+  # Apply sysctl settings
+  - sysctl --system
+
+  # Increase file descriptor and memory lock limits
+  - echo "* soft nofile 1048576" | tee -a /etc/security/limits.conf
+  - echo "* hard nofile 1048576" | tee -a /etc/security/limits.conf
+  - echo "* soft memlock unlimited" | tee -a /etc/security/limits.conf
+  - echo "* hard memlock unlimited" | tee -a /etc/security/limits.conf
+
+  # Digital Ocean Monitoring Agent
   - curl -sSL https://repos.insights.digitalocean.com/install.sh | sudo bash
 
   # Install Docker
