@@ -130,7 +130,7 @@ runcmd:
 
   # Clone benchmark repository
   - git clone https://github.com/VH-Evil-Inc/asgbd.git /home/bench/asgbd
-  - find . -type f -name "/home/bench/asgbd/db/relational/hammerdb/*.tcl" -exec sed -i 's/127\.0\.0\.1/postgres-01.private.do-usp.lelis.gay/g' {} +
+  - find /home/bench/asgbd/db/relational/hammerdb -type f -name "*.tcl" -exec sed -i 's/127\.0\.0\.1/postgres-01.private.do-usp.lelis.gay/g' {} +
   - chown -R bench:bench /home/bench/asgbd
 
   # Install NoSQLBench
