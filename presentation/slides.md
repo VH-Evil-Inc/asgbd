@@ -194,6 +194,7 @@ SELECT create_reference_table('item')
 
 # Ambiente
 
+- PostgreSQL 17 & Citus 13
 - Single Node x Multi Node ( 1 coord. ; 3 workers )
 - Inicial: 4 CPUs e 8GB de RAM, restringidos via Docker no mesmo host
 - Cloud: 4 vCPUs e 8GB de RAM, droplets de recurso compartilhado na DO
@@ -327,6 +328,7 @@ padrão do banco de dados possui 1 chave primária _YCSB_KEY_ e um conjunto de d
 
 # Ambiente
 
+- Cassandra 4.1
 - Single Node x Multi Node ( 3 instâncias )
 - Cloud: 4 vCPUs e 8GB de RAM, droplets de recurso compartilhado na DO
 
