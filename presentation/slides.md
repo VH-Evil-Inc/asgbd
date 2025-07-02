@@ -250,9 +250,23 @@ Por padrão o Cassandra opera como um sistema _AP_ (alta disponibilidade e toler
 
 # Yahoo! Cloud Serving Benchmarking (YCSB)
 
+O YCSB é um benchmark amplamente utilizado para avaliar o desempenho de sistemas de banco de dados NoSQL.
+
+Para este projeto, utilizaremos o YCSB para executar uma série de testes em cada configuração do Cassandra, com foco em medir o throughput e a latência das operações.
+
+O YCSB utiliza um modelo de dados simples baseado em chave-valor. O formato
+padrão do banco de dados é uma tabela chamada geralmente de usertable, que possui: 1 chave primária *YCSB_KEY* e um conjunto de dados *FIELD0*, *FIELD1*, ..., *FIELD9* que por padrão são tipo String.
+
 ---
 
 # Resultados
+
+| Configuração | Tempo de Carregamento (ms) | Tempo de Execução (ms) |
+| :------------------------- | ------------: | ------------: |
+| Nó único                   | 386 275       | 625 923       |
+| 3 nós sem replicação       | 224 126       | 225 164       |
+| 3 nós com replicação       | 477 892       | 552 229       |
+
 
 ---
 
