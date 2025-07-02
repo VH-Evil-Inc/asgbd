@@ -138,6 +138,8 @@ runcmd:
   - echo "host all all ::1/128 trust" | sudo tee -a /etc/postgresql/17/main/pg_hba.conf
   # Restart PostgreSQL
   - systemctl restart postgresql@17-main
+  # Enable Citus compatibility
+  - sudo -i -u postgres psql -c "CREATE EXTENSION citus;"
   # Install node_exporter
   - wget https://github.com/prometheus/node_exporter/releases/download/v1.9.1/node_exporter-1.9.1.linux-amd64.tar.gz
   - tar xvfz node_exporter-*.linux-amd64.tar.gz
