@@ -4,7 +4,7 @@ theme: copernicus
 paginate: true
 ---
 
-<!-- _class: titlepage -->
+<!-- _class: titlepage -->j
 
 ![bg left:33% saturate:1.5](assets/cassandra_painting.jpg)
 
@@ -23,9 +23,9 @@ paginate: true
 
 # Introdução & Motivação
 
-Tendo em vista a demanda crescente por sistemas eficientes e robustos para dados este trabalho foi desenvolvido para avaliar a performance e overhead entre diferentes sistemas gerenciadores de base de dados, distribuídos e centralizados.
+Tendo em vista a demanda crescente por sistemas eficientes e robustos para dados este trabalho foi desenvolvido para avaliar a performance e <i>overhead</i> entre diferentes sistemas gerenciadores de base de dados, distribuídos e centralizados.
 
-Este trabalho não visa fazer uma comparação direta entre a performance individual de cada SGBD e sim estudar e entender suas técnicas de distribuição e comparar seus escalonamentos horizontais.
+Este trabalho não visa fazer uma comparação direta entre a performance individual de cada SGBD e sim estudar e entender suas técnicas de distribuição, configurações e comparar os beneficios de seus escalonamentos horizontais.
 
 ---
 
@@ -43,13 +43,9 @@ Este trabalho não visa fazer uma comparação direta entre a performance indivi
 
 <!-- _class: transition -->
 
-![bg opacity:.08 blur:2.0px grayscale:1 brightness:0.75](https://github.com/VH-Evil-Inc/asgbd/blob/main/vhevilinc.jpg?raw=true)
+![bg opacity:.03 blur:2.0px grayscale:1 brightness:0.75](https://github.com/VH-Evil-Inc/asgbd/blob/main/vhevilinc.jpg?raw=true)
 
-# PostgreSQL & Citus
-
----
-
-# Arquitetura usada na parte de psql
+# Citus
 
 ---
 
@@ -70,7 +66,10 @@ Citus é uma extensão do PostgreSQL para bancos de dados distribuídos. O Citus
 
 ## Fragmentação Horizontal
 
-Um único esquema é utilizado entre todos os nós, tendo a fragmentação feita por tuplas que tem seu nó de residência determinado por uma coluna de distribuição.
+Um único esquema é utilizado entre todos 
+os nós, tendo a fragmentação feita por 
+tuplas que tem seu nó de residência determinado por uma coluna 
+de distribuição.
 
 </div>
 
@@ -78,7 +77,7 @@ Um único esquema é utilizado entre todos os nós, tendo a fragmentação feita
 
 ## Fragmentação por Esquema
 
-Permite diferentes nós usarem diferentes esquemas, ainda permite tabelas compartilhadas e outras funcionalidades do Citus em esquemas não fragmentados.
+Permite diferentes nós usarem diferentes esquemas, não permite junções entre esquemas distribuidos nem paralelização de queries mas ainda permite tabelas de referência em esquemas não fragmentados.
 
 </div>
 </div>
@@ -160,33 +159,80 @@ São tabelas que existem apenas no nó coordenador e não são distribuídas nem
 
 </div>
 <div> 
-<center> TCP-C ! :) </center>
+<center> 
+
+### TCP-C 
+
+</center>
+
+- Benchmark padronizado pela Transaction Processing Performance Council.
+- Simula um sistema de empresa de vendas por atacado e transações típicas.
+    - Novos Pedidos
+    - Pagamentos
+    - Processamento de Entregas
+    - Consulta de Status de Pedidos
+    - Consulta de Níveis de Estoque
+    
 </div>
 <div>
 
 ---
 
-# Estratégia de Distribuição
+# Estratégia de Distribuição do Citus
 
 ```sql
 -- Distribution Configuration
-SELECT create_reference_table('warehouse');
-SELECT create_reference_table('district');
-SELECT create_reference_table('item');
+SELECT create_distributed_table('customer', 'c_w_id')
+SELECT create_distributed_table('district', 'd_w_id')
+SELECT create_distributed_table('history', 'h_w_id')
+SELECT create_distributed_table('warehouse', 'w_id')
+SELECT create_distributed_table('stock', 's_w_id')
+SELECT create_distributed_table('new_order', 'no_w_id')
+SELECT create_distributed_table('orders', 'o_w_id')
+SELECT create_distributed_table('order_line', 'ol_w_id')
 
-SELECT create_distributed_table('customer', 'c_w_id', colocate_with => 'none');
-SELECT create_distributed_table('stock', 's_w_id', colocate_with => 'customer');
-SELECT create_distributed_table('orders', 'o_w_id', colocate_with => 'customer');
-SELECT create_distributed_table('new_order', 'no_w_id', colocate_with => 'customer');
-SELECT create_distributed_table('order_line', 'ol_w_id', colocate_with => 'customer');
-SELECT create_distributed_table('history', 'h_w_id', colocate_with => 'customer');
+SELECT create_reference_table('item')
 ```
 
 ---
 
-# Resultados
+# Configuração do Citus
+
+- 1 nó coordenador e 3 nós trabalhadores 
+- Executado em ambiente docker, limitação de recursos e latência simulada
+- Parâmetro de Warehouses = 40
+
+# Ambiente
 
 ---
+
+<!-- _class: transition -->
+
+
+# Resultados do Benchmark
+
+---
+
+- **Postgres**: 31.405 operações novas e 62.424 transações por minuto
+- **Citus**: 15.304 operações novas e 35.762 transações por minuto
+
+---
+
+| PROC     | Banco    | MIN (ms) | AVG (ms) | MAX (ms)  | P99 (ms) | P95 (ms) | P50 (ms) |
+|----------|----------|----------|----------|-----------|----------|----------|----------|
+| PAYMENT  | Postgres | 0.833    | 52.601   | 1257.365  | 413.035  | 167.278  | 27.633   |
+|          | Citus    | 0.990    | 101.086  | 1767.711  | 611.674  | 352.694  | 72.123   |
+| NEWORD   | Postgres | 1.640    | 48.569   | 1255.893  | 413.374  | 160.868  | 23.915   |
+|          | Citus    | 1.774    | 107.871  | 1737.546  | 607.420  | 362.191  | 83.081   |
+| SLEV     | Postgres | 0.440    | 153.889  | 21302.445 | 4235.829 | 73.669   | 6.215    |
+|          | Citus    | 0.612    | 63.438   | 5600.833  | 730.162  | 224.685  | 8.710    |
+| DELIVERY | Postgres | 1.278    | 54.623   | 1417.772  | 441.496  | 191.119  | 25.470   |
+|          | Citus    | 2.286    | 115.989  | 1505.085  | 596.206  | 375.478  | 90.453   |
+| OSTAT    | Postgres | 0.104    | 2.725    | 455.587   | 47.199   | 3.844    | 1.292    |
+|          | Citus    | 0.269    | 7.474    | 609.841   | 80.547   | 60.180   | 2.439    |
+
+---
+
 
 <!-- _class: transition -->
 
@@ -196,23 +242,13 @@ SELECT create_distributed_table('history', 'h_w_id', colocate_with => 'customer'
 
 ---
 
-# Arquitetura usada na parte de nosql
-
----
-
-# Talvez falar sobre Wide Column ?
-
----
-
 # Cassandra 
 
 Apache Cassandra é um banco de dados _open-source_ NoSQL distribuído, sendo classificado como um _Wide-Column Database_.
 
----
 
-# Cassandra
+* Arquitetura _masterless_ com _clusters_ organizados em forma de anel
 
-Cassandra utiliza uma arquitetura _masterless_ com _clusters_ organizados em forma de anel, todos os nós do Cassandra podem responder a aplicação e comunicar com todos os outros nós dentro de um anel.
 
 <center>
 
@@ -222,60 +258,92 @@ Cassandra utiliza uma arquitetura _masterless_ com _clusters_ organizados em for
 
 ---
 
+# Wide Column
+
+* Organização em linhas e colunas, com formatos que podem variar para uma mesma tabela.
+* Chave Primária definida como chave de partição e, opcionalmente, chave de clustering.
+
+---
+
 # Estrutura de Dados e Particionamento
 
-Os dados no cassandra são organizados em keyspaces que agrupam tabelas relacionadas. Cada tabela é composta por linhas e colunas 
+* Organização em _keyspaces_, distribuição por intervalod do espaço de tonkens
 
-Cada linha é identificada por uma chave primária composta por um partition key e, opcionalmente, colunas de ordenação (clustering columns)
-
-A distribuição dos dados é feita de forma que cada nó do cluster seja responsável por um intervalo do espaço de tokens. 
+* Cada linha é identificada por uma chave primária composta por um partition key e, opcionalmente, colunas de ordenação
 
 ---
 
-# Replicação e Tolerância a Falhas
+# Replicação, Tolerância a Falhas e Consistência
 
-Cassandra implementa replicação configurável por _keyspace_, permitindo definir o fator de replicação e a estratégia de replicação mais adequada ao ambiente. 
+*  Configurável por _keyspace_, permitindo definir o fator e a estratégia de replicação.
 
----
+* _Tunable consistency_, permitindo o usuário definir por operação quantos nós precisam confirmar uma leitura ou escrita para que ela seja bem-sucedida.
 
-# Consistência
+* Por padrão opera como sistema _AP_ (alta disponibilidade e tolerância a partições), mas pode ser configurado como _CP_(consistência e tolerância a partições)
 
-O Cassandra possui _tunable consistency_, permitindo o usuário definir por operação quantos nós precisam confirmar uma leitura ou escrita para que ela seja bem-sucedida.
-
-Isso permite ajustar entre priorizar consistência forte ou disponibilidade, conforme a necessidade da aplicação. 
-
-Por padrão o Cassandra opera como um sistema _AP_ (alta disponibilidade e tolerância a partições), mas pode ser configurado para comportar-se como _CP_(consistência e tolerância a partições) em cenários específicos.
 
 ---
 
 # Yahoo! Cloud Serving Benchmarking (YCSB)
 
-O YCSB é um benchmark amplamente utilizado para avaliar o desempenho de sistemas de banco de dados NoSQL.
+* Benchmark amplamente utilizado para sistemas de banco de dados NoSQL.
 
-Para este projeto, utilizaremos o YCSB para executar uma série de testes em cada configuração do Cassandra, com foco em medir o throughput e a latência das operações.
-
-O YCSB utiliza um modelo de dados simples baseado em chave-valor. O formato
-padrão do banco de dados é uma tabela chamada geralmente de usertable, que possui: 1 chave primária *YCSB_KEY* e um conjunto de dados *FIELD0*, *FIELD1*, ..., *FIELD9* que por padrão são tipo String.
+* O YCSB utiliza um modelo de dados simples baseado em chave-valor. O formato
+padrão do banco de dados possui 1 chave primária *YCSB_KEY* e um conjunto de dados *FIELD0*, *FIELD1*, ..., *FIELD9* que por padrão são tipo String.
 
 ---
 
-# Resultados
+<!-- _class: transition2 -->
 
-| Configuração | Tempo de Carregamento (ms) | Tempo de Execução (ms) |
-| :------------------------- | ------------: | ------------: |
-| Nó único                   | 386 275       | 625 923       |
-| 3 nós sem replicação       | 224 126       | 225 164       |
-| 3 nós com replicação       | 477 892       | 552 229       |
 
+# Resultados do Cassandra
+
+---
+
+# Tabela 1 - Tempos de benchmark no YCSB
+
+| Configuração               | Tempo de Carregamento (ms) | Tempo de Execução (ms) |
+| :------------------------- | -------------------------: | ---------------------: |
+| Nó único                   | 386 275                    | 625 923                |
+| 3 nós sem replicação       | 224 126                    | 225 164                |
+| 3 nós com replicação       | 477 892                    | 552 229                |
+
+
+---
+
+# Tabela 2 – Resultados do benchmark YCSB - Único nó
+
+| Operação | Operações | Latência Média (μs) |  Latência Mín (μs) | Latência Máx (μs) | 95\% (μs) | 99\% (μs) |
+| :------------------------- | ------------: | ------------: | ------------: | ------------: | ------------: | ------------: |
+| INSERT | 10 000 000 | 1 222,82 |  197 | 148 607 | 1 961 | 5 299 |
+| READ | 5 000 753 | 2 296,55 |  220 | 135 295 | 4 583 | 11 775 |
+| UPDATE | 4 999 247 | 1 681,11 |  159 | 149 759 | 2 923 | 7 011 |
+
+---
+
+# Tabela 3 – Resultados agregados do benchmark YCSB - 3 nós sem replicação
+
+| Operação | Operações | Latência Média (μs) |  Latência Mín (μs) | Latência Máx (μs) | 95\% (μs) | 99\% (μs) |
+| :------------------------- | ------------: | ------------: | ------------: | ------------: | ------------: | ------------: |
+| INSERT | 10 000 000 | 703,01 |  159 | 139 135 | 1 084 | 2 669 |
+| READ | 4 998 961 | 759,82 |  210 | 97 151 | 1 205 | 2 307 |
+| UPDATE | 5 001 039 | 656,09 |  160 | 95 935 | 1 087 | 2 964 |
+
+---
+
+# Tabela 4 – Resultados agregados do benchmark YCSB - 3 nós com replicação
+
+| Operação | Operações | Latência Média (μs) |  Latência Mín (μs) | Latência Máx (μs) | 95\% (μs) | 99\% (μs) |
+| :------------------------- | ------------: | ------------: | ------------: | ------------: | ------------: | ------------: |
+| INSERT | 10 000 000 | 1 514,36 |  186 | 149 119 | 3 843 | 9 103 |
+| READ | 5 000 119 | 2 334,83 |  268 | 125 119 | 5 563 | 11 191 |
+| UPDATE | 4 999 881 | 1 170,27 |  182 | 114 431 | 3 099 | 5 983 |
 
 ---
 
 # Conclusão
 
----
-
-# Bibliografia
-- uau documentação
+fodasse :) ¯\\\_(ツ)_/¯
 
 ---
 
