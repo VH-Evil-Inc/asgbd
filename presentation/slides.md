@@ -242,6 +242,7 @@ SELECT create_reference_table('item')
 
 ---
 
+- Parâmetros de teste: 100 Warehouses; 2m Rampup; 10m Teste
 - **Single-Node**: 51.498 operações novas e 118.229 transações por minuto  
 - **Multi-Node**: 67.108 operações novas e 154.437 transações por minuto
 
@@ -323,6 +324,8 @@ Apache Cassandra é um banco de dados _open-source_ NoSQL distribuído, sendo cl
 
 - O YCSB utiliza um modelo de dados simples baseado em chave-valor. O formato
 padrão do banco de dados possui 1 chave primária _YCSB_KEY_ e um conjunto de dados _FIELD0_, _FIELD1_, ..., _FIELD9_ que por padrão são tipo String.
+
+- Usado o `workloada`: split 50%/50% de leituras e updates. 10M de registros e 10M de operações.
 
 ---
 
