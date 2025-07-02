@@ -21,6 +21,7 @@ diset tpcc pg_driver timed         ;# Timed driver
 diset tpcc pg_rampup 2             ;# 2-minute rampup
 diset tpcc pg_duration 10           ;# 5-minute test
 diset tpcc pg_allwarehouse true
+diset tpcc pg_storedprocs true     ;# Enable stored procedures
 diset tpcc pg_timeprofile true     ;# Enabled to collect latency data
 diset tpcc pg_vacuum false         ;# Disable during test for stability
 
