@@ -3,8 +3,7 @@ marp: true
 theme: copernicus
 paginate: true
 ---
-
-<!-- _class: titlepage -->j
+<!-- _class: titlepage -->
 
 ![bg left:33% saturate:1.5](assets/cassandra_painting.jpg)
 
@@ -16,8 +15,6 @@ paginate: true
 <div class="author"        > Samuel Figueiredo Veronez 12542626 </div>
 <div class="date"          > SCC0243 - Arquitetura de Sistemas Gerenciadores de Base de Dados </div>
 <div class="organization"  > São Carlos - SP | 1°Semestre 2025 ICMC-USP </div>
-
-
 
 ---
 
@@ -32,9 +29,9 @@ Este trabalho não visa fazer uma comparação direta entre a performance indivi
 # Conceitos para Bases de Dados Distribuídas
 
 - Fragmentação
-    - Horizontal
-    - Vertical
-    - Mista
+  - Horizontal
+  - Vertical
+  - Mista
 - Replicação
 - Homogenidade e Heterogenidade
 - Alocação de dados
@@ -51,7 +48,7 @@ Este trabalho não visa fazer uma comparação direta entre a performance indivi
 
 # Citus
 
-Citus é uma extensão do PostgreSQL para bancos de dados distribuídos. O Citus apresenta suporte à fragmentação horizontal, fragmentação por esquema e replicação de dados. 
+Citus é uma extensão do PostgreSQL para bancos de dados distribuídos. O Citus apresenta suporte à fragmentação horizontal, fragmentação por esquema e replicação de dados.
 
 ---
 
@@ -66,9 +63,9 @@ Citus é uma extensão do PostgreSQL para bancos de dados distribuídos. O Citus
 
 ## Fragmentação Horizontal
 
-Um único esquema é utilizado entre todos 
-os nós, tendo a fragmentação feita por 
-tuplas que tem seu nó de residência determinado por uma coluna 
+Um único esquema é utilizado entre todos
+os nós, tendo a fragmentação feita por
+tuplas que tem seu nó de residência determinado por uma coluna
 de distribuição.
 
 </div>
@@ -87,23 +84,22 @@ Permite diferentes nós usarem diferentes esquemas, não permite junções entre
 <div class="columns">
 <div>
 
-
 ![h:400 drop-shadow:4px,5px,15px,#010101](./assets/citus-architecture.png)
 
 <figcaption align="center">
 <b>Figura</b>: Arquitetura coordinator-worker do Citus. Obtido em: https://github.com/citusdata/citus#Architecture
 </figcaption>
 
-
 </div>
-<div> 
+<div>
 
 - Dois tipos de nós: worker e coordinator
 
 - Worker armazenam os dados das tabelas distribuidas e processam as consultas
-- Cada coordinator node gerencia um cluster de worker nodes 
-    - Faz o intermédio das consultas da aplicação entre um ou múltiplos nós, acumulando e retornando os resultados para a aplicação
-    - Também também mantém a alocação, o controle da consistência dos dados e da integridade dos nós trabalhadores.
+- Cada coordinator node gerencia um cluster de worker nodes
+  - Faz o intermédio das consultas da aplicação entre um ou múltiplos nós, acumulando e retornando os resultados para a aplicação
+  - Também também mantém a alocação, o controle da consistência dos dados e da integridade dos nós trabalhadores.
+
 </div>
 <div>
 
@@ -136,7 +132,7 @@ São tabelas replicadas em todos os nós trabalhadores, utilizadas para armazena
 
 ### Tabelas locais
 
-São tabelas que existem apenas no nó coordenador e não são distribuídas nem replicadas. 
+São tabelas que existem apenas no nó coordenador e não são distribuídas nem replicadas.
 
 </div>
 
@@ -158,21 +154,21 @@ São tabelas que existem apenas no nó coordenador e não são distribuídas nem
 </center>
 
 </div>
-<div> 
-<center> 
+<div>
+<center>
 
-### TCP-C 
+### TCP-C
 
 </center>
 
 - Benchmark padronizado pela Transaction Processing Performance Council.
 - Simula um sistema de empresa de vendas por atacado e transações típicas.
-    - Novos Pedidos
-    - Pagamentos
-    - Processamento de Entregas
-    - Consulta de Status de Pedidos
-    - Consulta de Níveis de Estoque
-    
+  - Novos Pedidos
+  - Pagamentos
+  - Processamento de Entregas
+  - Consulta de Status de Pedidos
+  - Consulta de Níveis de Estoque
+
 </div>
 <div>
 
@@ -196,44 +192,65 @@ SELECT create_reference_table('item')
 
 ---
 
-# Configuração do Citus
-
-- 1 nó coordenador e 3 nós trabalhadores 
-- Executado em ambiente docker, limitação de recursos e latência simulada
-- Parâmetro de Warehouses = 40
-
 # Ambiente
+
+- Single Node x Multi Node ( 1 coord. ; 3 workers )
+- Inicial: 4 CPUs e 8GB de RAM, restringidos via Docker no mesmo host
+- Cloud: 4 vCPUs e 8GB de RAM, droplets de recurso compartilhado na DO
 
 ---
 
 <!-- _class: transition -->
 
-
-# Resultados do Benchmark
-
----
-
-- **Postgres**: 31.405 operações novas e 62.424 transações por minuto
-- **Citus**: 15.304 operações novas e 35.762 transações por minuto
+# Resultados do Benchmark (Local)
 
 ---
 
-| PROC     | Banco    | MIN (ms) | AVG (ms) | MAX (ms)  | P99 (ms) | P95 (ms) | P50 (ms) |
+- **Single-Node**: 31.405 operações novas e 62.424 transações por minuto
+- **Multi-Node**: 15.304 operações novas e 35.762 transações por minuto
+
+---
+
+| PROC     | Replicas | MIN (ms) | AVG (ms) | MAX (ms)  | P99 (ms) | P95 (ms) | P50 (ms) |
 |----------|----------|----------|----------|-----------|----------|----------|----------|
-| PAYMENT  | Postgres | 0.833    | 52.601   | 1257.365  | 413.035  | 167.278  | 27.633   |
-|          | Citus    | 0.990    | 101.086  | 1767.711  | 611.674  | 352.694  | 72.123   |
-| NEWORD   | Postgres | 1.640    | 48.569   | 1255.893  | 413.374  | 160.868  | 23.915   |
-|          | Citus    | 1.774    | 107.871  | 1737.546  | 607.420  | 362.191  | 83.081   |
-| SLEV     | Postgres | 0.440    | 153.889  | 21302.445 | 4235.829 | 73.669   | 6.215    |
-|          | Citus    | 0.612    | 63.438   | 5600.833  | 730.162  | 224.685  | 8.710    |
-| DELIVERY | Postgres | 1.278    | 54.623   | 1417.772  | 441.496  | 191.119  | 25.470   |
-|          | Citus    | 2.286    | 115.989  | 1505.085  | 596.206  | 375.478  | 90.453   |
-| OSTAT    | Postgres | 0.104    | 2.725    | 455.587   | 47.199   | 3.844    | 1.292    |
-|          | Citus    | 0.269    | 7.474    | 609.841   | 80.547   | 60.180   | 2.439    |
+| PAYMENT  | Single | 0.833    | 52.601   | 1257.365  | 413.035  | 167.278  | 27.633   |
+|          | Multi    | 0.990    | 101.086  | 1767.711  | 611.674  | 352.694  | 72.123   |
+| NEWORD   | Single | 1.640    | 48.569   | 1255.893  | 413.374  | 160.868  | 23.915   |
+|          | Multi    | 1.774    | 107.871  | 1737.546  | 607.420  | 362.191  | 83.081   |
+| SLEV     | Single | 0.440    | 153.889  | 21302.445 | 4235.829 | 73.669   | 6.215    |
+|          | Multi    | 0.612    | 63.438   | 5600.833  | 730.162  | 224.685  | 8.710    |
+| DELIVERY | Single | 1.278    | 54.623   | 1417.772  | 441.496  | 191.119  | 25.470   |
+|          | Multi    | 2.286    | 115.989  | 1505.085  | 596.206  | 375.478  | 90.453   |
+| OSTAT    | Single | 0.104    | 2.725    | 455.587   | 47.199   | 3.844    | 1.292    |
+|          | Multi    | 0.269    | 7.474    | 609.841   | 80.547   | 60.180   | 2.439    |
 
 ---
 
+<!-- _class: transition -->
 
+# Resultados do Benchmark (Cloud)
+
+---
+
+- **Single-Node**: 51.498 operações novas e 118.229 transações por minuto  
+- **Multi-Node**: 67.108 operações novas e 154.437 transações por minuto
+
+---
+
+| PROC     | Replicas | MIN (ms) | AVG (ms) | MAX (ms)  | P99 (ms) | P95 (ms) | P50 (ms) |
+|----------|----------|----------|----------|-----------|----------|----------|----------|
+| NEWORD   | Single   | 0.857    | 47.773   | 497.174   | 191.415  | 127.932  | 38.338   |
+|          | Multi    | 2.333    | 26.435   | 582.658   | 211.060  | 113.347  | 9.682    |
+| PAYMENT  | Single   | 0.400    | 15.545   | 422.251   | 112.142  | 50.166   | 9.886    |
+|          | Multi    | 1.028    | 22.988   | 767.196   | 238.873  | 138.448  | 4.133    |
+| DELIVERY | Single   | 0.990    | 74.445   | 667.467   | 268.406  | 184.238  | 62.080   |
+|          | Multi    | 2.539    | 26.001   | 388.739   | 144.493  | 89.586   | 13.082   |
+| SLEV     | Single   | 0.926    | 22.806   | 14.701.909| 130.593  | 54.970   | 7.961    |
+|          | Multi    | 1.629    | 31.134   | 12.533.507| 672.486  | 56.177   | 4.754    |
+| OSTAT    | Single   | 0.400    | 10.674   | 364.984   | 63.122   | 34.078   | 6.585    |
+|          | Multi    | 0.990    | 8.749    | 244.090   | 62.440   | 33.984   | 3.864    |
+
+---
 <!-- _class: transition -->
 
 ![bg opacity:.08 blur:2.0px grayscale:1 brightness:0.75](./assets/cassandra_eye.png)
@@ -242,13 +259,11 @@ SELECT create_reference_table('item')
 
 ---
 
-# Cassandra 
+# Cassandra
 
 Apache Cassandra é um banco de dados _open-source_ NoSQL distribuído, sendo classificado como um _Wide-Column Database_.
 
-
-* Arquitetura _masterless_ com _clusters_ organizados em forma de anel
-
+- Arquitetura _masterless_ com _clusters_ organizados em forma de anel
 
 <center>
 
@@ -260,41 +275,39 @@ Apache Cassandra é um banco de dados _open-source_ NoSQL distribuído, sendo cl
 
 # Wide Column
 
-* Organização em linhas e colunas, com formatos que podem variar para uma mesma tabela.
-* Chave Primária definida como chave de partição e, opcionalmente, chave de clustering.
+- Organização em linhas e colunas, com formatos que podem variar para uma mesma tabela.
+- Chave Primária definida como chave de partição e, opcionalmente, chave de clustering.
 
 ---
 
 # Estrutura de Dados e Particionamento
 
-* Organização em _keyspaces_, distribuição por intervalod do espaço de tonkens
+- Organização em _keyspaces_, distribuição por intervalod do espaço de tonkens
 
-* Cada linha é identificada por uma chave primária composta por um partition key e, opcionalmente, colunas de ordenação
+- Cada linha é identificada por uma chave primária composta por um partition key e, opcionalmente, colunas de ordenação
 
 ---
 
 # Replicação, Tolerância a Falhas e Consistência
 
-*  Configurável por _keyspace_, permitindo definir o fator e a estratégia de replicação.
+- Configurável por _keyspace_, permitindo definir o fator e a estratégia de replicação.
 
-* _Tunable consistency_, permitindo o usuário definir por operação quantos nós precisam confirmar uma leitura ou escrita para que ela seja bem-sucedida.
+- _Tunable consistency_, permitindo o usuário definir por operação quantos nós precisam confirmar uma leitura ou escrita para que ela seja bem-sucedida.
 
-* Por padrão opera como sistema _AP_ (alta disponibilidade e tolerância a partições), mas pode ser configurado como _CP_(consistência e tolerância a partições)
-
+- Por padrão opera como sistema _AP_ (alta disponibilidade e tolerância a partições), mas pode ser configurado como _CP_(consistência e tolerância a partições)
 
 ---
 
 # Yahoo! Cloud Serving Benchmarking (YCSB)
 
-* Benchmark amplamente utilizado para sistemas de banco de dados NoSQL.
+- Benchmark amplamente utilizado para sistemas de banco de dados NoSQL.
 
-* O YCSB utiliza um modelo de dados simples baseado em chave-valor. O formato
-padrão do banco de dados possui 1 chave primária *YCSB_KEY* e um conjunto de dados *FIELD0*, *FIELD1*, ..., *FIELD9* que por padrão são tipo String.
+- O YCSB utiliza um modelo de dados simples baseado em chave-valor. O formato
+padrão do banco de dados possui 1 chave primária _YCSB_KEY_ e um conjunto de dados _FIELD0_, _FIELD1_, ..., _FIELD9_ que por padrão são tipo String.
 
 ---
 
 <!-- _class: transition2 -->
-
 
 # Resultados do Cassandra
 
@@ -307,7 +320,6 @@ padrão do banco de dados possui 1 chave primária *YCSB_KEY* e um conjunto de d
 | Nó único                   | 386 275                    | 625 923                |
 | 3 nós sem replicação       | 224 126                    | 225 164                |
 | 3 nós com replicação       | 477 892                    | 552 229                |
-
 
 ---
 
@@ -343,8 +355,7 @@ padrão do banco de dados possui 1 chave primária *YCSB_KEY* e um conjunto de d
 
 # Conclusão
 
-fodasse :) ¯\\\_(ツ)_/¯
-
 ---
 
-# Perguntas!
+# Perguntas
+
